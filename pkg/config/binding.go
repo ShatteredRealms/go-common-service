@@ -15,7 +15,7 @@ var (
 	FailedReadingConfig = errors.New("failed to read config file")
 )
 
-func BindConfigEnvs(ctx context.Context, name string, config *interface{}) error {
+func BindConfigEnvs(ctx context.Context, name string, config interface{}) error {
 	viper.SetConfigName(name)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/etc/sro/")
