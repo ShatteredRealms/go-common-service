@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -9,7 +10,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-func BindConfigEnvs(ctx context.Context, name string, config interface{}) (interface{}, error) {
+var (
+	FailedEnvBinding = errors.New("failed to bind to environment variable(s)")
+	FailedReadingConfig = errors.New("failed to read config file")
+)
+
+func BindConfigEnvs(ctx context.Context, name string, config *struct{}) error {
 	viper.SetConfigName(name)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/etc/sro/")
@@ -18,12 +24,12 @@ func BindConfigEnvs(ctx context.Context, name string, config interface{}) (inter
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigParseError); ok {
 			log.Logger.WithContext(ctx).Errorf("read app config parse error: %v", err)
-			return nil, err
+			return errors.Join(FailedEnvBinding, err)
 		} else if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			log.Logger.WithContext(ctx).Infof("Using default config: %v", err)
 		} else {
-			log.Logger.WithContext(ctx).Errorf("unknown error prasing config : %v", err)
-			return nil, err
+			log.Logger.WithContext(ctx).Errorf("unknown error prasing config: %v", err)
+			return errors.Join(FailedEnvBinding, err)
 		}
 	}
 
@@ -36,15 +42,16 @@ func BindConfigEnvs(ctx context.Context, name string, config interface{}) (inter
 		for _, err := range errs {
 			log.Logger.WithContext(ctx).Debugf("failed binding to env: %v", err)
 		}
+		return FailedEnvBinding
 	}
 
 	// Save to struct
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Logger.WithContext(ctx).Errorf("unmarshal appConfig: %v", err)
-		return nil, err
+		return err
 	}
 
-	return config, nil
+	return nil
 }
 
 func bindEnvsToStruct(obj interface{}) []error {
