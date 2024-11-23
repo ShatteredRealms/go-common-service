@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
@@ -10,9 +11,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+var (
+	ErrMissingGocloak = errors.New("error code: CA01")
+)
+
 func verifyClaims(ctx context.Context, client gocloak.KeycloakClient, realm string) (*jwt.Token, *SROClaims, error) {
 	if client == nil {
-		return nil, nil, common.ErrMissingGocloak
+		return nil, nil, ErrMissingGocloak
 	}
 
 	tokenString, err := extractToken(ctx)
