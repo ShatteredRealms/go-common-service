@@ -1,6 +1,10 @@
 package config
 
-import "github.com/sirupsen/logrus"
+import (
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+)
 
 type KeycloakConfig struct {
 	BaseURL      string `yaml:"baseURL"`
@@ -21,4 +25,8 @@ type BaseConfig struct {
 	Mode                ServerMode     `yaml:"mode"`
 	LogLevel            logrus.Level   `yaml:"logLevel"`
 	OpenTelemtryAddress string         `yaml:"openTelemetryAddress"`
+}
+
+func (s *ServerAddress) Address() string {
+	return fmt.Sprintf("%s:%s", s.Host, s.Port)
 }
