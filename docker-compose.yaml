@@ -1,0 +1,180 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+    networks:
+      - backend
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - backend
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    restart: always
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250"
+    networks:
+      - backend
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    environment:
+      - JAVA_OPTS=-Xms1024m -Xmx1024m -XX:+ExitOnOutOfMemoryError
+    restart: always
+    ports:
+      - "9411:9411"
+    networks:
+      - backend
+
+  redis-cluster:
+    image: grokzen/redis-cluster:7.0.10
+    environment:
+      IP: 0.0.0.0
+      INITIAL_PORT: 7000
+      MASTERS: 3
+      SLAVES_PER_MASTER: 1
+      DEFAULT_PASSWORD: password
+    restart: always
+    ports:
+      - '7000-7005:7000-7005'
+    networks:
+      - backend
+  
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./test/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.97.0
+    restart: on-failure
+    user: '0:0' # required for logs
+    volumes:
+      - ./test/otel-collector.yaml:/etc/otelcol-contrib/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "55679:55679" # zpages extension
+    depends_on:
+      - zipkin
+      - prometheus
+    networks:
+      - backend
+
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    restart: on-failure
+    volumes:
+      - ./test/alertmanager.yaml:/etc/alertmanager/config.yml
+      - alertmanager_data:/alertmanager
+    ports:
+      - 9093:9093
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - backend
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: on-failure
+    ports:
+      - '8025:8025'
+    networks:
+      - backend
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - '5432:5432'
+    volumes: 
+      - postgres:/var/lib/postgresql/data
+      # - ./test/db-init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - backend
+
+  mongo:
+    restart: always
+    image: mongo:7.0-rc
+    volumes:
+      - mongo:/data/db
+    networks:
+      - backend
+    ports:
+      - 27017:27017
+    expose:
+      - 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo 
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    user: root
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres
+      DB_USER: postgres
+      DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - "start-dev"
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    volumes:
+      - keycloak:/opt/keycloak/data/h2:rw
+
+volumes:
+  alertmanager_data:
+    driver: local
+  postgres:
+    driver: local
+  keycloak:
+    driver: local
+  mongo:
+    driver: local
+
+networks:
+  backend:
