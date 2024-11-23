@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	FailedEnvBinding = errors.New("failed to bind to environment variable(s)")
+	FailedEnvBinding    = errors.New("failed to bind to environment variable(s)")
 	FailedReadingConfig = errors.New("failed to read config file")
 )
 
-func BindConfigEnvs(ctx context.Context, name string, config *struct{}) error {
+func BindConfigEnvs(ctx context.Context, name string, config *interface{}) error {
 	viper.SetConfigName(name)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/etc/sro/")
