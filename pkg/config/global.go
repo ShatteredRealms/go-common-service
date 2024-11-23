@@ -16,8 +16,9 @@ type ServerAddress struct {
 }
 
 type BaseConfig struct {
-	Server   ServerAddress  `yaml:"server"`
-	Keycloak KeycloakConfig `yaml:"keycloak"`
-	Mode     ServerMode     `yaml:"mode"`
-	LogLevel logrus.Level   `yaml:"logLevel"`
+	Server              ServerAddress  `yaml:"server"`
+	Keycloak            KeycloakConfig `yaml:"keycloak"`
+	Mode                ServerMode     `yaml:"mode"`
+	LogLevel            logrus.Level   `yaml:"logLevel"`
+	OpenTelemtryAddress string         `yaml:"openTelemetryAddress"`
 }
