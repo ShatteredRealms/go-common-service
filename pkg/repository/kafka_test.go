@@ -9,14 +9,14 @@ import (
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/repository"
-	testdb "github.com/ShatteredRealms/go-common-service/test/db"
+	"github.com/ShatteredRealms/go-common-service/pkg/testsro"
 )
 
 var _ = Describe("Kafka repository", func() {
 	Describe("ConnectKafka", func() {
 		Context("valid input", func() {
 			It("should work", func() {
-				cleanupFunc, port := testdb.SetupKafkaWithDocker()
+				cleanupFunc, port := testsro.SetupKafkaWithDocker()
 				var kafka *kafka.Conn
 				var err error
 				defer cleanupFunc()
@@ -32,4 +32,3 @@ var _ = Describe("Kafka repository", func() {
 		})
 	})
 })
-

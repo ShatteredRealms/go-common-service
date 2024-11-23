@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/ShatteredRealms/go-common-service/pkg/common"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"github.com/WilSimpson/gocloak/v13"

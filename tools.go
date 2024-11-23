@@ -4,12 +4,12 @@
 package tools
 
 import (
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest"
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest"
-	_ "github.com/mitranim/gow@latest"
-	_ "github.com/onsi/ginkgo/v2/ginkgo@latest"
-	_ "github.com/spf13/cobra-cli@latest"
-	_ "go.uber.org/mock/mockgen@latest"
-	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest"
-	_ "google.golang.org/protobuf/cmd/protoc-gen-go@latest"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
+	_ "github.com/mitranim/gow"
+	_ "github.com/onsi/ginkgo/v2/ginkgo"
+	_ "github.com/spf13/cobra-cli"
+	_ "go.uber.org/mock/mockgen"
+	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 )

@@ -1,7 +1,7 @@
 package model_test
 
 import (
-	"github.com/bxcodec/faker/v4"
+	"github.com/go-faker/faker/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 

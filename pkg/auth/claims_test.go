@@ -3,9 +3,9 @@ package auth_test
 import (
 	"context"
 
-	"github.com/ShatteredRealms/go-backend/pkg/auth"
+	"github.com/ShatteredRealms/go-common-service/pkg/auth"
 	"github.com/WilSimpson/gocloak/v13"
-	"github.com/bxcodec/faker/v4"
+	"github.com/go-faker/faker/v4"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

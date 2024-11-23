@@ -123,4 +123,4 @@ $(PROTO_FILES):
 		--grpc-gateway_opt "logtostderr=true"
 
 install-tools:
-	  cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
+	  cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %@latest
