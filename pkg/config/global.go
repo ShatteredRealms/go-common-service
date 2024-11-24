@@ -21,11 +21,12 @@ type ServerAddress struct {
 type ServerAddresses []ServerAddress
 
 type BaseConfig struct {
-	Server              ServerAddress  `yaml:"server"`
-	Keycloak            KeycloakConfig `yaml:"keycloak"`
-	Mode                ServerMode     `yaml:"mode"`
-	LogLevel            logrus.Level   `yaml:"logLevel"`
-	OpenTelemtryAddress string         `yaml:"openTelemetryAddress"`
+	Server              ServerAddress   `yaml:"server"`
+	Kafka               ServerAddresses `yaml:"kafka"`
+	Keycloak            KeycloakConfig  `yaml:"keycloak"`
+	Mode                ServerMode      `yaml:"mode"`
+	LogLevel            logrus.Level    `yaml:"logLevel"`
+	OpenTelemtryAddress string          `yaml:"openTelemetryAddress"`
 }
 
 func (s *ServerAddress) Address() string {
