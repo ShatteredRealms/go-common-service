@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
@@ -12,7 +13,9 @@ import (
 )
 
 var (
-	ErrMissingGocloak = errors.New("error code: CA01")
+	ErrFailed         = errors.New("auth")
+	ErrMissingGocloak = fmt.Errorf("%w: CA01", ErrFailed)
+	ErrDoesNotExist   = fmt.Errorf("%w: CA02", ErrFailed)
 )
 
 func verifyClaims(ctx context.Context, client gocloak.KeycloakClient, realm string) (*jwt.Token, *SROClaims, error) {

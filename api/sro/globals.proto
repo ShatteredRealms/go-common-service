@@ -1,0 +1,41 @@
+syntax = "proto3";
+package sro;
+option go_package = "pkg/pb";
+
+message UserTarget {
+  oneof target {
+    string id = 1;
+    string username = 2;
+  }
+}
+
+message CharacterTarget {
+  oneof target {
+    string id = 1;
+    string name = 2;
+  }
+}
+
+message DimensionTarget {
+  oneof target {
+    string id = 1;
+    string name = 2;
+  }
+}
+
+message MapTarget {
+  oneof target {
+    string id = 1;
+    string name = 2;
+  }
+}
+
+message Location {
+  string world = 1;
+  float x = 2;
+  float y = 3;
+  float z = 4;
+  float roll = 5;
+  float pitch = 6;
+  float yaw = 7;
+}
