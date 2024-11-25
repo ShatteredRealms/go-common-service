@@ -37,7 +37,7 @@ time=$(shell date +%s)
 
 PROTO_DIR=$(ROOT_DIR)/api
 
-PROTO_FILES = $(shell find $(PROTO_DIR) -name '*.proto' -not -path '$(PROTO_DIR)/google/*')
+PROTO_FILES = "$(PROTO_DIR)/health.proto" "$(PROTO_DIR)/sro/globals.proto"
 
 MOCK_INTERFACES = $(shell egrep -rl --include="*.go" "type (\w*) interface {" $(ROOT_DIR)/pkg | sed "s/.go$$//")
 
@@ -112,7 +112,7 @@ build-image-push: build-image push
 clean-protos:
 	rm -rf "$(ROOT_DIR)/pkg/pb"
 
-protos: clean-protos $(PROTO_FILES) mocks
+protos: clean-protos $(PROTO_FILES) move-protos mocks
 
 $(PROTO_FILES):
 	protoc "$@" \
@@ -121,6 +121,10 @@ $(PROTO_FILES):
 		--go-grpc_out="$(ROOT_DIR)" \
 		--grpc-gateway_out="$(ROOT_DIR)" \
 		--grpc-gateway_opt "logtostderr=true"
+
+move-protos:
+	mv -v "$(ROOT_DIR)/github.com/ShatteredRealms/$(APP_NAME)/pkg/pb" "$(ROOT_DIR)/pkg/"
+	rm -r "$(ROOT_DIR)/github.com"
 
 install-tools:
 	  cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %@latest

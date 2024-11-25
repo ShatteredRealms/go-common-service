@@ -1,6 +1,6 @@
 syntax = "proto3";
 package sro;
-option go_package = "pkg/pb";
+option go_package = "github.com/ShatteredRealms/go-common-service/pkg/pb;pb";
 
 message UserTarget {
   oneof target {
