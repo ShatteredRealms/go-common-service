@@ -10,8 +10,8 @@ func SourceOwnerUsername(val string) attribute.KeyValue {
 	return attribute.String("sro.source.owner.username", val)
 }
 
-func SourceCharacterId(val int) attribute.KeyValue {
-	return attribute.Int("sro.source.character.id", val)
+func SourceCharacterId(val string) attribute.KeyValue {
+	return attribute.String("sro.source.character.id", val)
 }
 
 func SourceCharacterName(val string) attribute.KeyValue {
@@ -26,8 +26,8 @@ func TargetOwnerUsername(val string) attribute.KeyValue {
 	return attribute.String("sro.target.owner.username", val)
 }
 
-func TargetCharacterId(val int) attribute.KeyValue {
-	return attribute.Int("sro.target.character.id", val)
+func TargetCharacterId(val string) attribute.KeyValue {
+	return attribute.String("sro.target.character.id", val)
 }
 
 func TargetCharacterName(val string) attribute.KeyValue {
