@@ -2,33 +2,7 @@ syntax = "proto3";
 package sro;
 option go_package = "github.com/ShatteredRealms/go-common-service/pkg/pb;pb";
 
-message UserTarget {
-  oneof target {
-    string id = 1;
-    string username = 2;
-  }
-}
-
-message CharacterTarget {
-  oneof target {
-    string id = 1;
-    string name = 2;
-  }
-}
-
-message DimensionTarget {
-  oneof target {
-    string id = 1;
-    string name = 2;
-  }
-}
-
-message MapTarget {
-  oneof target {
-    string id = 1;
-    string name = 2;
-  }
-}
+message TargetId { string id = 1; }
 
 message Location {
   string world = 1;
