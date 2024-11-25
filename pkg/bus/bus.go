@@ -7,12 +7,11 @@ type BusMessageType string
 type BusMessage[T any] interface {
 	GetType() BusMessageType
 	GetId() string
-	GetData() T
 }
 
-type MessageBus[T any] interface {
+type MessageBus[T BusMessage[any]] interface {
 	ReceiveMessages(context.Context, chan T) error
-	Publish(context.Context, BusMessage[T]) error
+	Publish(context.Context, T) error
 	Close(context.Context) error
 }
 

@@ -54,7 +54,7 @@ func main() {
 	}
 }
 
-func newMessageBus[T any](ctx context.Context, svc string, msg bus.BusMessage[T]) bus.MessageBus[T] {
+func newMessageBus[T bus.BusMessage[any]](ctx context.Context, svc string, msg T) bus.MessageBus[T] {
 	b := bus.NewKafkaMessageBus([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, svc, msg)
 	c := make(chan T)
 	go func() {

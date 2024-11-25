@@ -18,7 +18,7 @@ var (
 	ErrSendingMessage   = errors.New("unable to send message on bus")
 )
 
-type kafkaBus[T any] struct {
+type kafkaBus[T BusMessage[any]] struct {
 	Reader  *kafka.Reader
 	Writer  *kafka.Writer
 	brokers config.ServerAddresses
@@ -27,7 +27,7 @@ type kafkaBus[T any] struct {
 }
 
 // Publish implements MessageBus.
-func (k *kafkaBus[T]) Publish(ctx context.Context, msg BusMessage[T]) error {
+func (k *kafkaBus[T]) Publish(ctx context.Context, msg T) error {
 	k.Writer = kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  k.brokers.Addresses(),
 		Topic:    k.topic,
@@ -43,7 +43,7 @@ func (k *kafkaBus[T]) Publish(ctx context.Context, msg BusMessage[T]) error {
 		return fmt.Errorf("%w: %w", ErrSerializeMessage, err)
 	}
 
-	data, err := toByteArray(msg.GetData())
+	data, err := toByteArray(msg)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrSerializeMessage, err)
 	}
@@ -62,8 +62,8 @@ func (k *kafkaBus[T]) Publish(ctx context.Context, msg BusMessage[T]) error {
 // ReceiveMessages implements MessageBus.
 func (k *kafkaBus[T]) ReceiveMessages(ctx context.Context, channel chan T) error {
 	k.Reader = kafka.NewReader(kafka.ReaderConfig{
-		Brokers:               k.brokers.Addresses(),
-		Topic:                 k.topic,
+		Brokers:        k.brokers.Addresses(),
+		Topic:          k.topic,
 		GroupID:        k.groupId,
 		MinBytes:       1,
 		MaxBytes:       10e3,
@@ -100,7 +100,7 @@ func (k *kafkaBus[T]) Close(ctx context.Context) error {
 	return errs
 }
 
-func NewKafkaMessageBus[T any](brokers config.ServerAddresses, groupId string, msg BusMessage[T]) MessageBus[T] {
+func NewKafkaMessageBus[T BusMessage[any]](brokers config.ServerAddresses, groupId string, msg T) MessageBus[T] {
 	return &kafkaBus[T]{
 		brokers: brokers,
 		topic:   string(msg.GetType()),

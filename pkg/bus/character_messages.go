@@ -20,10 +20,6 @@ func (m CharacterCreatedMessage) GetType() BusMessageType {
 	return CharacterCreated
 }
 
-func (m CharacterCreatedMessage) GetData() CharacterCreatedMessage {
-	return m
-}
-
 func (m CharacterCreatedMessage) GetId() string {
 	return m.traceId
 }
