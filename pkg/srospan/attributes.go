@@ -34,3 +34,6 @@ func TargetCharacterName(val string) attribute.KeyValue {
 	return attribute.String("sro.target.character.username", val)
 }
 
+func DimensionId(val string) attribute.KeyValue {
+	return attribute.String("sro.dimension.id", val)
+}
