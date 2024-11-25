@@ -26,7 +26,7 @@ func ConnectDB(ctx context.Context, pgPool config.DBPoolConfig, redisPool config
 		return nil, err
 	}
 	if database.Exec(fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s';", pgPool.Master.Name)).RowsAffected == 0 {
-		atabase.Exec(fmt.Sprintf("CREATE DATABASE %s;", pgPool.Master.Name))
+		database.Exec(fmt.Sprintf("CREATE DATABASE %s;", pgPool.Master.Name))
 	}
 
 	conf, err := pgx.ParseConfig(pgPool.Master.PostgresDSN())
@@ -92,4 +92,3 @@ func ConnectDB(ctx context.Context, pgPool config.DBPoolConfig, redisPool config
 
 	return db, err
 }
-
