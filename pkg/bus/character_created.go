@@ -11,8 +11,7 @@ const (
 )
 
 type CharacterCreatedMessage struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
+	Id      string `json:"id"`
 	traceId string
 }
 
@@ -21,13 +20,12 @@ func (m CharacterCreatedMessage) GetType() BusMessageType {
 }
 
 func (m CharacterCreatedMessage) GetId() string {
-	return m.traceId
+	return m.Id
 }
 
-func NewCharacterCreatedMessage(ctx context.Context, id, name string) CharacterCreatedMessage {
+func NewCharacterCreatedMessage(ctx context.Context, id string) CharacterCreatedMessage {
 	return CharacterCreatedMessage{
-		ID:      id,
-		Name:    name,
+		Id:      id,
 		traceId: trace.SpanContextFromContext(ctx).TraceID().String(),
 	}
 }

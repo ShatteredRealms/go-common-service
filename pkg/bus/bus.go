@@ -9,9 +9,14 @@ type BusMessage[T any] interface {
 	GetId() string
 }
 
-type MessageBus[T BusMessage[any]] interface {
-	ReceiveMessages(context.Context, chan T) error
-	Publish(context.Context, T) error
+type MessageBusReader[T BusMessage[any]] interface {
+	FetchMessage(context.Context) (*T, error)
+	ProcessSucceeded(context.Context) error
+	ProcessFailed(context.Context) error
 	Close(context.Context) error
 }
 
+type MessageBusWriter[T BusMessage[any]] interface {
+	Publish(context.Context, T) error
+	Close(context.Context) error
+}
