@@ -1,10 +1,10 @@
 package bus
 
 const (
-	Character BusMessageType = "sro.character"
+	Map BusMessageType = "sro.gameserver.map"
 )
 
-type CharacterMessage struct {
+type MapMessage struct {
 	// Id is the unique identifier of the character
 	Id string `json:"id"`
 
@@ -12,10 +12,10 @@ type CharacterMessage struct {
 	Deleted bool `json:"deleted"`
 }
 
-func (m CharacterMessage) GetType() BusMessageType {
-	return Character
+func (m MapMessage) GetType() BusMessageType {
+	return Map
 }
 
-func (m CharacterMessage) GetId() string {
+func (m MapMessage) GetId() string {
 	return m.Id
 }

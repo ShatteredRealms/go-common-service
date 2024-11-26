@@ -1,7 +1,7 @@
 package bus
 
 const (
-	DimensionCreated BusMessageType = "sro.dimension.created"
+	Dimension BusMessageType = "sro.gameserver.dimension"
 )
 
 type DimensionMessage struct {
@@ -13,7 +13,7 @@ type DimensionMessage struct {
 }
 
 func (m DimensionMessage) GetType() BusMessageType {
-	return DimensionCreated
+	return Dimension
 }
 
 func (m DimensionMessage) GetId() string {
