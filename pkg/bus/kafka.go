@@ -56,7 +56,7 @@ func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
 		return fmt.Errorf("%w: %w", ErrSerializeMessage, err)
 	}
 
-	err = k.Writer.WriteMessages(context.Background(), kafka.Message{
+	err = k.Writer.WriteMessages(ctx, kafka.Message{
 		Key:   key,
 		Value: data,
 	})
@@ -85,7 +85,7 @@ func (k *kafkaBusReader[T]) FetchMessage(ctx context.Context) (*T, error) {
 		})
 	}
 	var err error
-	*k.currentMessage, err = k.Reader.FetchMessage(context.Background())
+	*k.currentMessage, err = k.Reader.FetchMessage(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrSerializeMessage, err)
 	}
@@ -111,19 +111,19 @@ func (k *kafkaBusReader[T]) ProcessSucceeded(ctx context.Context) error {
 	return errors.New("reader not initialized")
 }
 
-func (k *kafkaBusReader[T]) ProcessFailed(ctx context.Context) error {
+func (k *kafkaBusReader[T]) ProcessFailed() error {
 	if k.Reader == nil {
 		return errors.New("reader not initialized")
 	}
 	if k.currentMessage == nil {
 		return errors.New("message not fetched")
 	}
-	err := k.Close(ctx)
+	err := k.Close()
 	k.currentMessage = nil
 	return err
 }
 
-func (k *kafkaBusReader[T]) Close(ctx context.Context) error {
+func (k *kafkaBusReader[T]) Close() error {
 	if k.Reader != nil {
 		err := k.Reader.Close()
 		k.Reader = nil
@@ -132,7 +132,7 @@ func (k *kafkaBusReader[T]) Close(ctx context.Context) error {
 	return nil
 }
 
-func (k *kafkaBusWriter[T]) Close(ctx context.Context) error {
+func (k *kafkaBusWriter[T]) Close() error {
 	if k.Writer != nil {
 		err := k.Writer.Close()
 		k.Writer = nil

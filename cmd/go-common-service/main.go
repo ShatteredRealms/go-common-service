@@ -46,7 +46,7 @@ func main() {
 				if failCount < maxFailCount {
 					failCount++
 					log.Logger.Infof("Failing to process message: %v", msg)
-					err := b.ProcessFailed(ctx)
+					err := b.ProcessFailed()
 					if err != nil {
 						log.Logger.Errorf("Failed to mark %v as failed: %v", msg, err)
 					}
@@ -79,7 +79,7 @@ func main() {
 		case <-ctx.Done():
 			log.Logger.Info("Shut down requested by user")
 			for _, b := range readBusses {
-				err := b.Close(ctx)
+				err := b.Close()
 				if err != nil {
 					log.Logger.Errorf("Error shutting down bus: %v", err)
 				}

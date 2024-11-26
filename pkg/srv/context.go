@@ -88,7 +88,7 @@ func (srvCtx *Context) CreateRoles(ctx context.Context, roles *[]*gocloak.Role) 
 			ctx,
 			jwtToken.AccessToken,
 			srvCtx.Config.Keycloak.Realm,
-			srvCtx.Config.Keycloak.Id,
+			srvCtx.Config.Keycloak.ClientId,
 			*role,
 		)
 
