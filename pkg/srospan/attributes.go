@@ -37,3 +37,7 @@ func TargetCharacterName(val string) attribute.KeyValue {
 func DimensionId(val string) attribute.KeyValue {
 	return attribute.String("sro.dimension.id", val)
 }
+
+func MapId(val string) attribute.KeyValue {
+	return attribute.String("sro.map.id", val)
+}

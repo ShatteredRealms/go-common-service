@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
+	"github.com/ShatteredRealms/go-common-service/pkg/bus/character/characterbus"
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/sirupsen/logrus"
@@ -22,8 +23,8 @@ func main() {
 	tp := trace.NewTracerProvider()
 	defer tp.Shutdown(ctx)
 
-	msg := bus.CharacterMessage{}
-	readBusses := make([]bus.MessageBusReader[bus.CharacterMessage], 0)
+	msg := characterbus.Message{}
+	readBusses := make([]bus.MessageBusReader[characterbus.Message], 0)
 	cg1, cg2 := "service1", "service2"
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg1, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg1, msg))

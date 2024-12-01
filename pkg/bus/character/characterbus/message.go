@@ -1,10 +1,8 @@
-package bus
+package characterbus
 
-const (
-	Character BusMessageType = "sro.character"
-)
+import "github.com/ShatteredRealms/go-common-service/pkg/bus"
 
-type CharacterMessage struct {
+type Message struct {
 	// Id is the unique identifier of the character
 	Id string `json:"id"`
 
@@ -15,10 +13,10 @@ type CharacterMessage struct {
 	Deleted bool `json:"deleted"`
 }
 
-func (m CharacterMessage) GetType() BusMessageType {
-	return Character
+func (m Message) GetType() bus.BusMessageType {
+	return bus.BusMessageType("sro.character")
 }
 
-func (m CharacterMessage) GetId() string {
+func (m Message) GetId() string {
 	return m.Id
 }
