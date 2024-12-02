@@ -21,7 +21,7 @@ var (
 
 type DefaultBusProcessor[T BusModelMessage[any]] struct {
 	Reader             MessageBusReader[T]
-	Repo               BusMessageRepository
+	Repo               BusMessageRepository[T]
 	mu                 sync.Mutex
 	concurrentFetchErr int
 	concurrentErrCount int
@@ -89,7 +89,7 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 		return nil
 	}
 
-	err = bp.Repo.Save(ctx, (*msg).GetId())
+	err = bp.Repo.Save(ctx, *msg)
 	if err != nil {
 		log.Logger.WithContext(ctx).Errorf(
 			"unable to save %T %s: %v", msg, (*msg).GetId(), err)

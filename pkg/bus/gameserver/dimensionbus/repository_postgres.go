@@ -2,7 +2,6 @@ package dimensionbus
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
@@ -20,10 +19,9 @@ func NewPostgresRepository(db *gorm.DB) Repository {
 }
 
 // Save implements DimensionRepository.
-func (p *postgresRepository) Save(ctx context.Context, data any) error {
-	dimension, ok := data.(Dimension)
-	if !ok {
-		return fmt.Errorf("invalid data type: %T", data)
+func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
+	dimension := Dimension{
+		Id: msg.Id,
 	}
 
 	updateSpanWithDimension(ctx, dimension.Id)

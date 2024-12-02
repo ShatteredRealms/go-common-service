@@ -7,7 +7,7 @@ import (
 )
 
 type Repository interface {
-	bus.BusMessageRepository
+	bus.BusMessageRepository[Message]
 
 	GetById(ctx context.Context, characterId string) (*Character, error)
 

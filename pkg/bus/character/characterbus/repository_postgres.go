@@ -3,7 +3,6 @@ package characterbus
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
@@ -27,11 +26,13 @@ func NewPostgresRepository(db *gorm.DB) Repository {
 // SaveCharacter implements CharacterRepository.
 func (p *postgresRepository) Save(
 	ctx context.Context,
-	data any,
+	msg Message,
 ) error {
-	character, ok := data.(Character)
-	if !ok {
-		return fmt.Errorf("invalid data type: %T", data)
+	character := Character{
+		Id:          msg.Id,
+		OwnerId:     msg.OwnerId,
+		DimensionId: msg.DimensionId,
+		MapId:       msg.MapId,
 	}
 
 	updateSpanWithCharacter(ctx, character.Id, character.OwnerId)
