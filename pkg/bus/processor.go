@@ -72,6 +72,7 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 	msg, err := bp.Reader.FetchMessage(ctx)
 	if err != nil {
 		log.Logger.WithContext(ctx).Errorf("unable to fetch %T message: %v", msg, err)
+		bp.Reader.ProcessFailed()
 		return fmt.Errorf("%w: %w", ErrFetchMessage, err)
 	}
 
