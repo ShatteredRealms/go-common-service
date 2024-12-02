@@ -45,7 +45,7 @@ func (p *postgresRepository) Delete(
 	id string,
 ) error {
 	character := &Character{}
-	err := p.db(ctx).Clauses(clause.Returning{}).Delete(&character, "id = '?'", id).Error
+	err := p.db(ctx).Clauses(clause.Returning{}).Delete(character, "id = ?", id).Error
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,10 @@ func (p *postgresRepository) GetById(
 	ctx context.Context,
 	characterId string,
 ) (character *Character, _ error) {
-	result := p.db(ctx).Find(&character, "id = '?'", characterId)
+	character = &Character{
+		Id: characterId,
+	}
+	result := p.db(ctx).Find(&character)
 	if result.Error != nil {
 		return nil, result.Error
 	}
