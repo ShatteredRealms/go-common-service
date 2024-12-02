@@ -6,7 +6,6 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type postgresRepository struct {
@@ -31,12 +30,12 @@ func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
 // Delete implements DimensionRepository.
 func (p *postgresRepository) Delete(ctx context.Context, dimensionId string) error {
 	updateSpanWithDimension(ctx, dimensionId)
-	return p.db(ctx).Clauses(clause.Returning{}).Delete(&Dimension{}, "id = '?'", dimensionId).Error
+	return p.db(ctx).Delete(&Dimension{}, "id = ?", dimensionId).Error
 }
 
 // GetById implements DimensionRepository.
 func (p *postgresRepository) GetById(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
-	result := p.db(ctx).Find(&dimension, dimensionId)
+	result := p.db(ctx).First(&dimension, "id = ?", dimensionId)
 	if result.Error != nil {
 		return nil, result.Error
 	}
