@@ -45,7 +45,7 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 			bp.mu.Unlock()
 		}()
 
-		log.Logger.WithContext(ctx).Infof("starting bus processor for %T", bp.Reader)
+		log.Logger.WithContext(ctx).Infof("Starting bus processor for %T", bp.Reader)
 		for bp.isProcessing {
 			err := bp.process(ctx)
 			if errors.Is(err, ErrProcessingFailed) {
@@ -112,6 +112,6 @@ func (bp *DefaultBusProcessor[T]) StopProcessing() {
 		return
 	}
 
-	log.Logger.Infof("stopping bus processor for	%T", bp.Reader)
+	log.Logger.Infof("Stopping bus processor for	%T", bp.Reader)
 	bp.isProcessing = false
 }
