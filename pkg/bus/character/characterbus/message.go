@@ -6,8 +6,14 @@ type Message struct {
 	// Id is the unique identifier of the character
 	Id string `json:"id"`
 
-	// Id is the unique identifier of the owner of the character
+	// OwnerId is the unique identifier of the owner of the character
 	OwnerId string `json:"ownerId"`
+
+	// DimensionId is the unique identifier of the dimension the character is in
+	DimensionId string `json:"dimensionId"`
+
+	// MapId is the unique identifier of the map the character is in
+	MapId string `json:"mapId"`
 
 	// Deleted is a flag indicating if the character has been deleted
 	Deleted bool `json:"deleted"`
