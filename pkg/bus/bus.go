@@ -9,6 +9,11 @@ type BusMessage[T any] interface {
 	GetId() string
 }
 
+type BusModelMessage[T any] interface {
+	BusMessage[T]
+	WasDeleted() bool
+}
+
 type MessageBusReader[T BusMessage[any]] interface {
 	FetchMessage(context.Context) (*T, error)
 	ProcessSucceeded(context.Context) error

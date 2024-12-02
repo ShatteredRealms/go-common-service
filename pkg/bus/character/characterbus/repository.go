@@ -2,19 +2,17 @@ package characterbus
 
 import (
 	"context"
+
+	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
 type Repository interface {
-	GetCharacterById(ctx context.Context, characterId string) (*Character, error)
+	bus.BusMessageRepository
 
-	GetCharacters(ctx context.Context) (*Characters, error)
-	GetCharactersByOwnerId(ctx context.Context, ownerId string) (*Characters, error)
+	GetById(ctx context.Context, characterId string) (*Character, error)
 
-	CreateCharacter(ctx context.Context, characterId, ownerId string) (*Character, error)
+	GetAll(ctx context.Context) (*Characters, error)
+	GetByOwnerId(ctx context.Context, ownerId string) (*Characters, error)
 
-	UpdateCharacter(ctx context.Context, character *Character) (*Character, error)
-
-	DeleteCharacter(ctx context.Context, characterId string) (*Character, error)
-
-	DoesOwnCharacter(ctx context.Context, characterId, ownerId string) (bool, error)
+	IsOwner(ctx context.Context, characterId, ownerId string) (bool, error)
 }

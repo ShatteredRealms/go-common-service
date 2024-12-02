@@ -2,6 +2,7 @@ package dimensionbus
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
@@ -18,21 +19,25 @@ func NewPostgresRepository(db *gorm.DB) Repository {
 	return &postgresRepository{gormdb: db}
 }
 
-// CreateDimension implements DimensionRepository.
-func (p *postgresRepository) CreateDimension(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
-	updateSpanWithDimension(ctx, dimensionId)
-	dimension.Id = dimensionId
-	return dimension, p.db(ctx).Create(dimension).Error
+// Save implements DimensionRepository.
+func (p *postgresRepository) Save(ctx context.Context, data any) error {
+	dimension, ok := data.(Dimension)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", data)
+	}
+
+	updateSpanWithDimension(ctx, dimension.Id)
+	return p.db(ctx).Create(&dimension).Error
 }
 
-// DeleteDimension implements DimensionRepository.
-func (p *postgresRepository) DeleteDimension(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
+// Delete implements DimensionRepository.
+func (p *postgresRepository) Delete(ctx context.Context, dimensionId string) error {
 	updateSpanWithDimension(ctx, dimensionId)
-	return dimension, p.db(ctx).Clauses(clause.Returning{}).Delete(dimension, "id = ?", dimensionId).Error
+	return p.db(ctx).Clauses(clause.Returning{}).Delete(&Dimension{}, "id = ?", dimensionId).Error
 }
 
-// GetDimensionById implements DimensionRepository.
-func (p *postgresRepository) GetDimensionById(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
+// GetById implements DimensionRepository.
+func (p *postgresRepository) GetById(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
 	result := p.db(ctx).Where("id = ?", dimensionId).Find(&dimension)
 	if result.Error != nil {
 		return nil, result.Error
@@ -44,8 +49,8 @@ func (p *postgresRepository) GetDimensionById(ctx context.Context, dimensionId s
 	return dimension, nil
 }
 
-// GetDimensions implements DimensionRepository.
-func (p *postgresRepository) GetDimensions(ctx context.Context) (dimensions *Dimensions, _ error) {
+// GetAll implements DimensionRepository.
+func (p *postgresRepository) GetAll(ctx context.Context) (dimensions *Dimensions, _ error) {
 	return dimensions, p.db(ctx).Find(dimensions).Error
 }
 

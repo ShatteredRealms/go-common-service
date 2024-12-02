@@ -3,6 +3,7 @@ package characterbus
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
@@ -23,49 +24,37 @@ func NewPostgresRepository(db *gorm.DB) Repository {
 	return &postgresRepository{gormdb: db}
 }
 
-// CreateCharacter implements CharacterRepository.
-func (p *postgresRepository) CreateCharacter(
+// SaveCharacter implements CharacterRepository.
+func (p *postgresRepository) Save(
 	ctx context.Context,
-	characterId string,
-	ownerId string,
-) (*Character, error) {
-	updateSpanWithCharacter(ctx, characterId, ownerId)
-	character := &Character{
-		Id:      characterId,
-		OwnerId: ownerId,
-	}
-	return character, p.db(ctx).Create(&character).Error
-}
-
-// UpdateCharacter implements CharacterRepository.
-func (p *postgresRepository) UpdateCharacter(
-	ctx context.Context,
-	character *Character,
-) (*Character, error) {
-	if character == nil {
-		return nil, ErrNilCharacter
+	data any,
+) error {
+	character, ok := data.(Character)
+	if !ok {
+		return fmt.Errorf("invalid data type: %T", data)
 	}
 
 	updateSpanWithCharacter(ctx, character.Id, character.OwnerId)
-	return character, p.db(ctx).Save(&character).Error
+	return p.db(ctx).Save(&character).Error
 }
 
 // DeleteCharacter implements CharacterRepository.
-func (p *postgresRepository) DeleteCharacter(
+func (p *postgresRepository) Delete(
 	ctx context.Context,
-	characterId string,
-) (character *Character, _ error) {
-	err := p.db(ctx).Clauses(clause.Returning{}).Delete(&character, characterId).Error
+	id string,
+) error {
+	character := &Character{}
+	err := p.db(ctx).Clauses(clause.Returning{}).Delete(&character, id).Error
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	updateSpanWithCharacter(ctx, characterId, character.OwnerId)
-	return character, err
+	updateSpanWithCharacter(ctx, id, character.OwnerId)
+	return err
 }
 
-// GetCharacterById implements CharacterRepository.
-func (p *postgresRepository) GetCharacterById(
+// GetById implements CharacterRepository.
+func (p *postgresRepository) GetById(
 	ctx context.Context,
 	characterId string,
 ) (character *Character, _ error) {
@@ -81,23 +70,23 @@ func (p *postgresRepository) GetCharacterById(
 	return character, nil
 }
 
-// GetCharacters implements CharacterRepository.
-func (p *postgresRepository) GetCharacters(
+// GetAll implements CharacterRepository.
+func (p *postgresRepository) GetAll(
 	ctx context.Context,
 ) (characters *Characters, _ error) {
 	return characters, p.db(ctx).Find(&characters).Error
 }
 
 // GetCharacterByOwnerId implements CharacterRepository.
-func (p *postgresRepository) GetCharactersByOwnerId(
+func (p *postgresRepository) GetByOwnerId(
 	ctx context.Context,
 	ownerId string,
 ) (characters *Characters, _ error) {
 	return characters, p.db(ctx).Where("owner_id = ?", ownerId).Find(&characters).Error
 }
 
-// DoesOwnCharacter implements CharacterRepository.
-func (p *postgresRepository) DoesOwnCharacter(ctx context.Context, characterId string, ownerId string) (bool, error) {
+// IsOwner implements CharacterRepository.
+func (p *postgresRepository) IsOwner(ctx context.Context, characterId string, ownerId string) (bool, error) {
 	result := p.db(ctx).Where("id = ? AND owner_id = ?", characterId, ownerId).Find(&Character{})
 	if result.Error != nil {
 		return false, result.Error

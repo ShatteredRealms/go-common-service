@@ -17,3 +17,7 @@ func (m Message) GetType() bus.BusMessageType {
 func (m Message) GetId() string {
 	return m.Id
 }
+
+func (m Message) WasDeleted() bool {
+	return m.Deleted
+}

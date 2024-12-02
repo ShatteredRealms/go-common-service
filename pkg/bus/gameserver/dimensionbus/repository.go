@@ -2,14 +2,14 @@ package dimensionbus
 
 import (
 	"context"
+
+	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
 type Repository interface {
-	GetDimensionById(ctx context.Context, dimensionId string) (*Dimension, error)
+	bus.BusMessageRepository
 
-	GetDimensions(ctx context.Context) (*Dimensions, error)
+	GetById(ctx context.Context, dimensionId string) (*Dimension, error)
 
-	CreateDimension(ctx context.Context, dimensionId string) (*Dimension, error)
-
-	DeleteDimension(ctx context.Context, dimensionId string) (*Dimension, error)
+	GetAll(ctx context.Context) (*Dimensions, error)
 }
