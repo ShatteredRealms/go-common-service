@@ -85,6 +85,7 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 			return ErrProcessingFailed
 		}
 
+		log.Logger.WithContext(ctx).Infof("deleted %T %s", msg, (*msg).GetId())
 		bp.Reader.ProcessSucceeded(ctx)
 		return nil
 	}
@@ -97,6 +98,7 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 		return ErrProcessingFailed
 	}
 
+	log.Logger.WithContext(ctx).Infof("saved %T %s", msg, (*msg).GetId())
 	bp.Reader.ProcessSucceeded(ctx)
 	return nil
 }
