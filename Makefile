@@ -41,6 +41,18 @@ PROTO_FILES = "$(PROTO_DIR)/health.proto" "$(PROTO_DIR)/sro/globals.proto"
 
 MOCK_INTERFACES = $(shell egrep -rl --include="*.go" "type (\w*) interface {" $(ROOT_DIR)/pkg | sed "s/.go$$//")
 
+# Versioning
+VERSION=$(BASE_VERSION)
+ifeq ($(VERSION),)
+	VERSION := 0.0.0
+endif
+
+VERSION_PARTS=$(subst ., ,$(VERSION))
+MAJOR_VERSION=$(word 1,$(VERSION_PARTS))
+MINOR_VERSION=$(word 2,$(VERSION_PARTS))
+PATCH_VERSION=$(word 3,$(VERSION_PARTS))
+
+
 #   _____                    _
 #  |_   _|                  | |
 #    | | __ _ _ __ __ _  ___| |_ ___
@@ -129,3 +141,16 @@ move-protos:
 install-tools:
 	  cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %@latest
 
+git: git-patch
+git-major:
+	git tag -a v$(shell echo $(MAJOR_VERSION)+1 | bc).0.0
+	git push
+	git push --tags
+git-minor:
+	git tag -a v$(MAJOR_VERSION).$(shell echo $(MINOR_VERSION)+1 | bc).0 
+	git push
+	git push --tags
+git-patch:
+	git tag v$(MAJOR_VERSION).$(MINOR_VERSION).$(shell echo $(PATCH_VERSION)+1 | bc)
+	git push
+	git push --tags
