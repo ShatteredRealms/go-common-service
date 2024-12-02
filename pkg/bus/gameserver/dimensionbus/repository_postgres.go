@@ -25,13 +25,13 @@ func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
 	}
 
 	updateSpanWithDimension(ctx, dimension.Id)
-	return p.db(ctx).Create(&dimension).Error
+	return p.db(ctx).Save(&dimension).Error
 }
 
 // Delete implements DimensionRepository.
 func (p *postgresRepository) Delete(ctx context.Context, dimensionId string) error {
 	updateSpanWithDimension(ctx, dimensionId)
-	return p.db(ctx).Clauses(clause.Returning{}).Delete(&Dimension{}, dimensionId).Error
+	return p.db(ctx).Clauses(clause.Returning{}).Delete(&Dimension{}, "id = '?'", dimensionId).Error
 }
 
 // GetById implements DimensionRepository.
