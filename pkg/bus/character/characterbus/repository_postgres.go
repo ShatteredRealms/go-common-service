@@ -83,12 +83,12 @@ func (p *postgresRepository) GetByOwnerId(
 	ctx context.Context,
 	ownerId string,
 ) (characters *Characters, _ error) {
-	return characters, p.db(ctx).Where("owner_id = ?", ownerId).Find(&characters).Error
+	return characters, p.db(ctx).Where("owner_id = '?'", ownerId).Find(&characters).Error
 }
 
 // IsOwner implements CharacterRepository.
 func (p *postgresRepository) IsOwner(ctx context.Context, characterId string, ownerId string) (bool, error) {
-	result := p.db(ctx).Where("id = ? AND owner_id = ?", characterId, ownerId).Find(&Character{})
+	result := p.db(ctx).Where("id = '?' AND owner_id = '?'", characterId, ownerId).Find(&Character{})
 	if result.Error != nil {
 		return false, result.Error
 	}
