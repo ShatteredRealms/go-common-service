@@ -1,10 +1,40 @@
 # Overview
+Common utilities and packages for Shattered Realms golang microservices.
 
+## Packages
+* `api`
+    * Common proto file definitions and gRPC API definition for common services
+* `cmd`
+    * Short lived tests for testing all packages
+* `pkg/bus`
+    * Event bus implementation for pub/sub
+    * Event bus message definitions and basic repository and service for microservices to use as a base
+* `pkg/config`
+    * Base configuration layout used by microservices
+* `pkg/log`
+    * Logging package common used by microservices
+* `pkg/mocks`
+    * Generated mocks for testing
+* `pkg/model`
+    * Base database model definitions
+    * Common database models
+* `pkg/pb`
+    * Generated protobuf files for gRPC services and proto definitions
+* `pkg/repository`
+    * Setup connection to postgres database with redis cache and opentelemetry tracing
+    * Setup connection to kafka
+* `pkg/srospan`
+    * OpenTeleemtry Span attributes for microservices
+* `pkg/srv`
+    * Basic health gRPC service implementation
+    * Common errors
+    * Base service context for microservices
 
 # Development
 ## Requirements
 **Required:**
 * Golang ~> 1.23
+
 **Preferred:**
 * Make
 * Docker
@@ -22,19 +52,12 @@ Anytime changes to the gRPC API are made, the following command should be run to
 make protos
 ```
 
-## Building
-The application version is automatically taken as the latest version tag.
-**Binary:** `make build` the output result will be placed in the `bin` folder in the project root directory.\ 
-**Docker:** \
-    `make docker` builds a docker image called `sro-<app-name>` with 3 tags variants `latest`, `${version}`, and `${version}-${commit hash}`.\
-    `make push` push the image to the docker repository.\
-    `make docker push` runs docker then push.\
-
-Note: A helper command `make aws-docker-login` is available to authenticate with the default aws credential context if pushing to AWS ECR.
-
 ## Testing
-`make test` runs all tests and builds a coverage report, and `test-watch` runs the tests with coverage on all `.go` file changes.
-`make report` views the coverage report in the browser, and `test-watch` updates coverage results as they update.
+* `make test` runs all tests and builds a coverage report
+* `make report` views the coverage report in the browser
+* `make test-watch` runs the tests with coverage on all `.go` file changes.
+* `make report-watch` updates coverage results as they update.
+* `make dev-watch` runs both `test-watch` and `report-watch`.
 
-## Building Container
-Deployment is done using docker. If using an AWS docker repository, running `make aws-docker-login` will authenticate with the default aws credential context. To push the images, run `make push`. This will build the image and push them to the docker repository.
+## Versioning
+Run `make git` to generate a new version tag by incrementing the patch number. This is the same as `make git-patch`. To increment the minor or major version, run `make git-minor` or `make git-major` respectively.
