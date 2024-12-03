@@ -39,6 +39,7 @@ Common utilities and packages for Shattered Realms golang microservices.
 * Make
 * Docker
 * Protoc
+* inotifywait
 
 ## Getting Started
 The following commands download all dependencies and installs any required tools for development.
@@ -57,7 +58,7 @@ make protos
 * `make report` views the coverage report in the browser
 * `make test-watch` runs the tests with coverage on all `.go` file changes.
 * `make report-watch` updates coverage results as they update.
-* `make dev-watch` runs both `test-watch` and `report-watch`.
+* `make dev-watch -j` simply runs both `test-watch` and `report-watch` in parallel.
 
 ## Versioning
 Run `make git` to generate a new version tag by incrementing the patch number. This is the same as `make git-patch`. To increment the minor or major version, run `make git-minor` or `make git-major` respectively.

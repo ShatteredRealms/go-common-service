@@ -43,7 +43,7 @@ func SetupKeycloakWithDocker() (func(), string) {
 
 	wd, err := os.Getwd()
 	chk(err)
-	realmExportFile, err := filepath.Abs(fmt.Sprintf("%s/../../test/db/keycloak-realm-export.json", wd))
+	realmExportFile, err := filepath.Abs(fmt.Sprintf("%s/../../pkg/testsro/keycloak-realm-export.json", wd))
 	chk(err)
 	keycloakRunDockerOpts := &dockertest.RunOptions{
 		Repository: "quay.io/keycloak/keycloak",
@@ -362,4 +362,3 @@ func Retry(op func() error, maxTime time.Duration) error {
 
 	return nil
 }
-
