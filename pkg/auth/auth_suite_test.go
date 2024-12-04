@@ -51,12 +51,14 @@ var (
 )
 
 func TestAuth(t *testing.T) {
-	var keycloakCloseFunc func()
+	var keycloakCloseFunc func() error
 
 	SynchronizedBeforeSuite(func() []byte {
 		log.Logger, _ = test.NewNullLogger()
 		var host string
-		keycloakCloseFunc, host = testsro.SetupKeycloakWithDocker()
+		var err error
+		keycloakCloseFunc, host, err = testsro.SetupKeycloakWithDocker()
+		Expect(err).NotTo(HaveOccurred())
 		Expect(host).NotTo(BeNil())
 
 		keycloak = gocloak.NewClient(host)

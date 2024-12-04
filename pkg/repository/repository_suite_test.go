@@ -25,26 +25,29 @@ var (
 	hook *test.Hook
 
 	gdb            *gorm.DB
-	gdbCloseFunc   func()
+	gdbCloseFunc   func() error
 	mdb            *mongo.Database
-	mdbCloseFunc   func()
-	redisCloseFunc func()
+	mdbCloseFunc   func() error
+	redisCloseFunc func() error
 
 	data initializeData
 )
 
 func TestRepository(t *testing.T) {
+	var err error
 	SynchronizedBeforeSuite(func() []byte {
 		log.Logger, hook = test.NewNullLogger()
 
 		var gormPort string
-		gdbCloseFunc, gormPort = testsro.SetupGormWithDocker()
+		gdbCloseFunc, gormPort, err = testsro.SetupGormWithDocker()
+		Expect(err).NotTo(HaveOccurred())
 		Expect(gdbCloseFunc).NotTo(BeNil())
 
-		mdbCloseFunc, data.MdbConnStr = testsro.SetupMongoWithDocker()
+		mdbCloseFunc, data.MdbConnStr, err = testsro.SetupMongoWithDocker()
+		Expect(err).NotTo(HaveOccurred())
 		Expect(mdbCloseFunc).NotTo(BeNil())
 
-		redisCloseFunc, data.RedisConfig = testsro.SetupRedisWithDocker()
+		redisCloseFunc, data.RedisConfig, err = testsro.SetupRedisWithDocker()
 
 		data.GormConfig = config.DBConfig{
 			ServerAddress: config.ServerAddress{
@@ -55,9 +58,11 @@ func TestRepository(t *testing.T) {
 			Username: testsro.Username,
 			Password: testsro.Password,
 		}
-		gdb = testsro.ConnectGormDocker(data.GormConfig.PostgresDSN())
+		gdb, err = testsro.ConnectGormDocker(data.GormConfig.PostgresDSN())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(gdb).NotTo(BeNil())
-		mdb = testsro.ConnectMongoDocker(data.MdbConnStr)
+		mdb, err = testsro.ConnectMongoDocker(data.MdbConnStr)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(mdb).NotTo(BeNil())
 
 		var buf bytes.Buffer
@@ -71,9 +76,11 @@ func TestRepository(t *testing.T) {
 		dec := gob.NewDecoder(bytes.NewBuffer(inBytes))
 		Expect(dec.Decode(&data)).To(Succeed())
 
-		gdb = testsro.ConnectGormDocker(data.GormConfig.PostgresDSN())
+		gdb, err = testsro.ConnectGormDocker(data.GormConfig.PostgresDSN())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(gdb).NotTo(BeNil())
-		mdb = testsro.ConnectMongoDocker(data.MdbConnStr)
+		mdb, err = testsro.ConnectMongoDocker(data.MdbConnStr)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(mdb).NotTo(BeNil())
 	})
 
