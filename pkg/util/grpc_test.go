@@ -2,6 +2,7 @@ package util_test
 
 import (
 	"net/http"
+	"net/url"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -26,9 +27,11 @@ var _ = Describe("Grpc util", func() {
 		httpServer.HandledRequest = false
 		req = &http.Request{
 			ProtoMajor: 2,
-			Header:     make(http.Header),
+			Header: http.Header{
+				"Content-Type": []string{"application/grpc; otherdata=this"},
+			},
+			URL: &url.URL{},
 		}
-		req.Header.Set("Content-Type", "application/grpc; otherdata=this")
 		// log.Logger, hook = test.NewNullLogger()
 	})
 

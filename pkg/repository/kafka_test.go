@@ -16,9 +16,9 @@ var _ = Describe("Kafka repository", func() {
 	Describe("ConnectKafka", func() {
 		Context("valid input", func() {
 			It("should work", func() {
-				cleanupFunc, port := testsro.SetupKafkaWithDocker()
+				cleanupFunc, port, err := testsro.SetupKafkaWithDocker()
+				Expect(err).NotTo(HaveOccurred())
 				var kafka *kafka.Conn
-				var err error
 				defer cleanupFunc()
 				Eventually(func(g Gomega) error {
 					kafka, err = repository.ConnectKafka(config.ServerAddress{

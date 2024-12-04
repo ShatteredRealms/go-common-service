@@ -4,11 +4,9 @@ import (
 	"context"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
-	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/ShatteredRealms/go-common-service/pkg/repository"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sirupsen/logrus/hooks/test"
 )
 
 var _ = Describe("Db repository", func() {
@@ -16,7 +14,6 @@ var _ = Describe("Db repository", func() {
 		pool config.DBPoolConfig
 	)
 	BeforeEach(func() {
-		log.Logger, _ = test.NewNullLogger()
 		pool = config.DBPoolConfig{
 			Master: data.GormConfig,
 			Slaves: []config.DBConfig{data.GormConfig},

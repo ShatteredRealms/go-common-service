@@ -21,7 +21,19 @@ import (
 
 // ConnectDB Initializes the connection to a Postgres database
 func ConnectDB(ctx context.Context, pgPool config.DBPoolConfig, redisPool config.DBPoolConfig) (*gorm.DB, error) {
-	database, err := gorm.Open(postgres.Open(pgPool.Master.PostgresDSNWithoutName()), &gorm.Config{})
+	gormCfg := &gorm.Config{
+		Logger: logger.New(
+			log.Logger,
+			logger.Config{
+				SlowThreshold:             time.Millisecond * 500,
+				Colorful:                  true,
+				IgnoreRecordNotFoundError: true,
+				ParameterizedQueries:      true,
+			},
+		),
+	}
+
+	database, err := gorm.Open(postgres.Open(pgPool.Master.PostgresDSNWithoutName()), gormCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -40,17 +52,7 @@ func ConnectDB(ctx context.Context, pgPool config.DBPoolConfig, redisPool config
 	sqlDB.SetMaxIdleConns(10)
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: sqlDB,
-	}), &gorm.Config{
-		Logger: logger.New(
-			log.Logger,
-			logger.Config{
-				SlowThreshold:             time.Millisecond * 500,
-				Colorful:                  true,
-				IgnoreRecordNotFoundError: true,
-				ParameterizedQueries:      true,
-			},
-		),
-	})
+	}), gormCfg)
 
 	if err != nil {
 		return nil, fmt.Errorf("gorm: %w", err)
