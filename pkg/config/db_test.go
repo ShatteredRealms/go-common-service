@@ -33,6 +33,13 @@ var _ = Describe("Db config", func() {
 		})
 	})
 
+	Describe("PostgresDSNWithoutName", func() {
+		It("should work", func() {
+			dsn = config.PostgresDSNWithoutName()
+			Expect(dsn).NotTo(ContainSubstring(config.Name))
+		})
+	})
+
 	Describe("MongoDSN", func() {
 		It("should work", func() {
 			dsn = config.MongoDSN()
@@ -47,3 +54,14 @@ var _ = Describe("Db config", func() {
 	})
 })
 
+var _ = Describe("Db pool config", func() {
+	var (
+		config *config.DBPoolConfig
+	)
+
+	It("should be able to list addresses and ports", func() {
+		Expect(faker.FakeData(&config)).To(Succeed())
+		addrs := config.Addresses()
+		Expect(addrs).To(HaveLen(len(config.Slaves) + 1))
+	})
+})
