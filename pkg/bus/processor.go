@@ -12,6 +12,7 @@ import (
 type BusProcessor interface {
 	StartProcessing(ctx context.Context)
 	StopProcessing()
+	IsProcessing() bool
 }
 
 var (
@@ -26,6 +27,10 @@ type DefaultBusProcessor[T BusModelMessage[any]] struct {
 	concurrentFetchErr int
 	concurrentErrCount int
 	isProcessing       bool
+}
+
+func (bp *DefaultBusProcessor[T]) IsProcessing() bool {
+	return bp.isProcessing
 }
 
 func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
@@ -64,6 +69,7 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 
 			if bp.concurrentFetchErr >= 10 {
 				log.Logger.WithContext(ctx).Error("too many errors fetching dimension messages")
+				return
 			}
 		}
 	}()
