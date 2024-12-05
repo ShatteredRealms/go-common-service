@@ -33,6 +33,10 @@ func SetupKeycloakWithDocker() (closeFn func() error, host string, err error) {
 		return
 	}
 
+	if pool.Client.Ping() != nil {
+		return nil, "", errors.New("docker not running")
+	}
+
 	pool.MaxWait = time.Second * 10
 	fnConfig := func(config *docker.HostConfig) {
 		config.AutoRemove = true

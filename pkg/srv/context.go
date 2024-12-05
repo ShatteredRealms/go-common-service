@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ShatteredRealms/go-common-service/pkg/auth"
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/WilSimpson/gocloak/v13"
@@ -108,39 +107,35 @@ func (srvCtx *Context) CreateRoles(ctx context.Context, roles *[]*gocloak.Role) 
 	return errs
 }
 
-// GetUserId gets the user id from the username or returns the given id if it is not empty
-func (srvCtx *Context) GetUserId(
-	ctx context.Context,
-	id string,
-	username string,
-) (string, error) {
-	ctx, span := srvCtx.Tracer.Start(ctx, "target.get_user_id")
-	defer span.End()
-
-	ownerId := id
-	if ownerId == "" {
-		jwt, err := srvCtx.GetJWT(ctx)
-		if err != nil {
-			return "", fmt.Errorf("get user id: %w", err)
-		}
-		resp, err := srvCtx.KeycloakClient.GetUsers(
-			ctx,
-			jwt.AccessToken,
-			srvCtx.Config.Keycloak.Realm,
-			gocloak.GetUsersParams{
-				Exact:    gocloak.BoolP(true),
-				Username: gocloak.StringP(username),
-			},
-		)
-		if err != nil {
-			return "", fmt.Errorf("keycloak get users: %v", err)
-		}
-		if len(resp) == 0 || len(resp) > 1 {
-			return "", auth.ErrDoesNotExist
-		}
-
-		ownerId = *resp[0].ID
-	}
-
-	return ownerId, nil
-}
+// // ValidateUserExists checks if a user exists in Keycloak. If the user does not exist it returns
+// // auth.ErrDoesNotExist. Otherwise, it returns nil. Other errors are possible.
+// func (srvCtx *Context) ValidateUserExists(
+// 	ctx context.Context,
+// 	id string,
+// ) error {
+// 	ctx, span := srvCtx.Tracer.Start(ctx, "target.get_user_id")
+// 	defer span.End()
+//
+// 	jwt, err := srvCtx.GetJWT(ctx)
+// 	if err != nil {
+// 		return fmt.Errorf("fetch client token: %w", err)
+// 	}
+// 	resp, err := srvCtx.KeycloakClient.GetUsers(
+// 		ctx,
+// 		jwt.AccessToken,
+// 		srvCtx.Config.Keycloak.Realm,
+// 		gocloak.GetUsersParams{
+// 			Exact:     gocloak.BoolP(true),
+// 			IDPUserID: gocloak.StringP(id),
+// 		},
+// 	)
+// 	if err != nil {
+// 		return fmt.Errorf("keycloak get users: %v", err)
+// 	}
+//
+// 	if len(resp) == 0 || len(resp) > 1 {
+// 		return auth.ErrDoesNotExist
+// 	}
+//
+// 	return nil
+// }
