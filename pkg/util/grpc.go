@@ -8,11 +8,9 @@ import (
 	"strings"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
 )
 
 func GRPCHandlerFunc(grpcServer http.Handler, otherHandler http.Handler) http.Handler {
@@ -34,19 +32,22 @@ func GRPCHandlerFunc(grpcServer http.Handler, otherHandler http.Handler) http.Ha
 
 func StartServer(
 	ctx context.Context,
-	grpcServer *grpc.Server,
-	gwmux *runtime.ServeMux,
+	grpcServer http.Handler,
+	gwmux http.Handler,
 	address string,
-) error {
+) (*http.Server, error) {
 	log.Logger.WithContext(ctx).Info("Starting server")
 	listen, err := net.Listen("tcp", address)
 	if err != nil {
-		return fmt.Errorf("listen server: %w", err)
+		return nil, fmt.Errorf("listen server: %w", err)
 	}
 
 	httpSrv := &http.Server{
 		Addr:    address,
 		Handler: GRPCHandlerFunc(grpcServer, gwmux),
 	}
-	return httpSrv.Serve(listen)
+	go func() {
+		httpSrv.Serve(listen)
+	}()
+	return httpSrv, nil
 }

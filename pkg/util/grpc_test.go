@@ -70,13 +70,18 @@ var _ = Describe("Grpc util", func() {
 	})
 
 	// @TODO: Find way to test without race conditions
-	// Describe("StartServer", func() {
-	// 	It("should start a server", func() {
-	// 		ctx := context.Background()
-	// 		listener := util.StartServer(ctx, grpcServer, httpServer, "127.0.0.1:9999")
-	// 		Expect(listener.Addr().String()).To(Equal("127.0.0.1:9999"))
-	// 	})
-	// })
+	Describe("StartServer", func() {
+		It("should start a server", func(ctx SpecContext) {
+			srv, err := util.StartServer(ctx, grpcServer, httpServer, "127.0.0.1:9999")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(srv).NotTo(BeNil())
+		})
+		It("should error if invalid host is given", func(ctx SpecContext) {
+			srv, err := util.StartServer(ctx, grpcServer, httpServer, ".0.1:9999")
+			Expect(err).To(HaveOccurred())
+			Expect(srv).To(BeNil())
+		})
+	})
 })
 
 type fakeHttpHandler struct {
