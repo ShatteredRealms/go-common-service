@@ -90,33 +90,11 @@ mocks: clean-mocks
 	@for file in $(MOCK_INTERFACES); do \
 		mockgen -package=mocks -source=$${file}.go -destination="$(ROOT_DIR)/pkg/mocks/$${file##*/}_mock.go"; \
 	done
-
-build: 
-	go build -ldflags="-X 'github.com/ShatteredRealms/$(APP_NAME)/pkg/config/default.Version=$(BASE_VERSION)'" -o $(ROOT_DIR)/bin/$(APP_NAME) $(ROOT_DIR)/cmd/$(APP_NAME)  
-
 run:
 	go run $(ROOT_DIR)/cmd/$(APP_NAME)
 
 run-watch:
 	gow run $(ROOT_DIR)/cmd/$(APP_NAME)
-
-deploy: aws-docker-login push
-
-docker:
-	docker build --build-arg APP_VERSION=$(BASE_VERSION) -t sro-$(APP_NAME) -f build/$(APP_NAME).Dockerfile .
-
-aws-docker-login:
-	aws ecr get-login-password | docker login --username AWS --password-stdin $(SRO_BASE_REGISTRY)
-
-push:
-	docker tag sro-$(APP_NAME) $(SRO_REGISTRY)/$(APP_NAME):latest
-	docker tag sro-$(APP_NAME) $(SRO_REGISTRY)/$(APP_NAME):$(BASE_VERSION)
-	docker tag sro-$(APP_NAME) $(SRO_REGISTRY)/$(APP_NAME):$(BASE_VERSION)-$(COMMIT_HASH)
-	docker push $(SRO_REGISTRY)/$(APP_NAME):latest
-	docker push $(SRO_REGISTRY)/$(APP_NAME):$(BASE_VERSION)
-	docker push $(SRO_REGISTRY)/$(APP_NAME):$(BASE_VERSION)-$(COMMIT_HASH)
-
-docker-push: docker push
 
 .PHONY: clean-protos protos $(PROTO_FILES)
 
