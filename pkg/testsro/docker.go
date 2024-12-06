@@ -95,6 +95,28 @@ func SetupKeycloakWithDocker() (closeFn func() error, host string, err error) {
 	})
 
 	err = pool.Retry(func() error {
+		code, err := keycloakResource.Exec([]string{
+			"bin/kc.sh",
+			"start-dev",
+			"--health-enabled=true",
+			"--features=declarative-user-profile",
+			"--hostname",
+			fmt.Sprintf("localhost:%s", keycloakResource.GetPort("8080/tcp")),
+		}, dockertest.ExecOptions{
+			StdOut: os.Stdout,
+			StdErr: os.Stderr,
+		})
+		if err != nil {
+			return err
+		}
+		if code != 0 {
+			return fmt.Errorf("keycloak not ready: code %d", code)
+		}
+		return nil
+		return err
+	})
+
+	err = pool.Retry(func() error {
 		_, err = http.Get(host + "/realms/default")
 		return err
 	})
