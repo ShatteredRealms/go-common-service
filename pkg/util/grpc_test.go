@@ -6,7 +6,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sirupsen/logrus/hooks/test"
 
+	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/ShatteredRealms/go-common-service/pkg/util"
 )
 
@@ -32,7 +34,7 @@ var _ = Describe("Grpc util", func() {
 			},
 			URL: &url.URL{},
 		}
-		// log.Logger, hook = test.NewNullLogger()
+		log.Logger, _ = test.NewNullLogger()
 	})
 
 	Describe("GRPCHandlerFunc", func() {
@@ -73,12 +75,12 @@ var _ = Describe("Grpc util", func() {
 	Describe("StartServer", func() {
 		It("should start a server", func(ctx SpecContext) {
 			srv, err := util.StartServer(ctx, grpcServer, httpServer, "127.0.0.1:9999")
-			Expect(err).NotTo(HaveOccurred())
+			Consistently(err).Should(HaveLen(0))
 			Expect(srv).NotTo(BeNil())
 		})
 		It("should error if invalid host is given", func(ctx SpecContext) {
 			srv, err := util.StartServer(ctx, grpcServer, httpServer, ".0.1:9999")
-			Expect(err).To(HaveOccurred())
+			Eventually(err).Should(HaveLen(1))
 			Expect(srv).To(BeNil())
 		})
 	})

@@ -35,11 +35,15 @@ func StartServer(
 	grpcServer http.Handler,
 	gwmux http.Handler,
 	address string,
-) (*http.Server, error) {
+) (*http.Server, chan error) {
 	log.Logger.WithContext(ctx).Info("Starting server")
 	listen, err := net.Listen("tcp", address)
+	ch := make(chan error, 1)
 	if err != nil {
-		return nil, fmt.Errorf("listen server: %w", err)
+		go func() {
+			ch <- fmt.Errorf("listen server: %w", err)
+		}()
+		return nil, ch
 	}
 
 	httpSrv := &http.Server{
@@ -47,7 +51,7 @@ func StartServer(
 		Handler: GRPCHandlerFunc(grpcServer, gwmux),
 	}
 	go func() {
-		httpSrv.Serve(listen)
+		ch <- httpSrv.Serve(listen)
 	}()
-	return httpSrv, nil
+	return httpSrv, ch
 }
