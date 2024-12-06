@@ -180,7 +180,7 @@ func SetupKafkaWithDocker() (closeFn func() error, port string, err error) {
 		code, err := kafkaResource.Exec([]string{
 			"kafka-topics",
 			"--bootstrap-server",
-			"kafka:29092",
+			"localhost:29092",
 			"--list",
 		}, dockertest.ExecOptions{
 			// StdOut: os.Stdout,
@@ -203,7 +203,7 @@ func SetupKafkaWithDocker() (closeFn func() error, port string, err error) {
 		code, err := kafkaResource.Exec([]string{
 			"kafka-configs",
 			"--bootstrap-server",
-			"kafka:29092",
+			"localhost:29092",
 			"--entity-type",
 			"brokers",
 			"--entity-name",
@@ -235,7 +235,7 @@ func SetupKafkaWithDocker() (closeFn func() error, port string, err error) {
 		code, err := kafkaResource.Exec([]string{
 			"kafka-topics",
 			"--bootstrap-server",
-			"kafka:29092",
+			"localhost:29092",
 			"--create",
 			"--if-not-exists",
 			"--topic",
