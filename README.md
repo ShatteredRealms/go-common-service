@@ -1,4 +1,4 @@
-# Overview
+# Overview [![codecov](https://codecov.io/gh/ShatteredRealms/go-common-service/graph/badge.svg?token=8nwCfHwBSh)](https://codecov.io/gh/ShatteredRealms/go-common-service)
 Common utilities and packages for Shattered Realms golang microservices.
 
 ## Packages
