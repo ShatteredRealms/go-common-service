@@ -56,6 +56,10 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 			if errors.Is(err, ErrProcessingFailed) {
 				bp.concurrentErrCount++
 			} else if errors.Is(err, ErrFetchMessage) {
+				if errors.Is(err, context.Canceled) {
+					log.Logger.WithContext(ctx).Info("stopping bus processor due to context cancellation")
+					return
+				}
 				bp.concurrentFetchErr++
 			} else {
 				bp.concurrentErrCount = 0
