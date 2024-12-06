@@ -118,8 +118,6 @@ push:
 
 docker-push: docker push
 
-build-image-push: build-image push 
-
 .PHONY: clean-protos protos $(PROTO_FILES)
 
 clean-protos:
@@ -144,11 +142,11 @@ install-tools:
 
 git: git-patch
 git-major:
-	git tag -a v$(shell echo $(MAJOR_VERSION)+1 | bc).0.0
+	git tag v$(shell echo $(MAJOR_VERSION)+1 | bc).0.0
 	git push
 	git push --tags
 git-minor:
-	git tag -a v$(MAJOR_VERSION).$(shell echo $(MINOR_VERSION)+1 | bc).0 
+	git tag v$(MAJOR_VERSION).$(shell echo $(MINOR_VERSION)+1 | bc).0 
 	git push
 	git push --tags
 git-patch:

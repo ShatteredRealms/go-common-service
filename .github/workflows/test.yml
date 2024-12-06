@@ -1,0 +1,41 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+      - qa
+      - dev
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      dind:
+        image: docker:27-rc-dind-rootless
+        ports:
+          - 2375:2375
+    name: Test
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.23
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: |
+        make install-tools
+        echo "${HOME}/go/bin" >> $GITHUB_PATH
+        make test
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5.1.1
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
