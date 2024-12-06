@@ -1,4 +1,4 @@
-# Overview [![codecov](https://codecov.io/gh/ShatteredRealms/go-common-service/graph/badge.svg?token=8nwCfHwBSh)](https://codecov.io/gh/ShatteredRealms/go-common-service) [![Tests](https://github.com/ShatteredRealms/go-common-service/actions/workflows/test.yml/badge.svg)](https://github.com/ShatteredRealms/go-common-service/actions/workflows/test.yml)
+# Overview [![codecov](https://codecov.io/gh/ShatteredRealms/go-common-service/graph/badge.svg?token=8nwCfHwBSh)](https://codecov.io/gh/ShatteredRealms/go-common-service) [![Unit and Integration Tests](https://github.com/ShatteredRealms/go-common-service/actions/workflows/test.yml/badge.svg)](https://github.com/ShatteredRealms/go-common-service/actions/workflows/test.yml)
 Common utilities and packages for Shattered Realms golang microservices.
 
 ## Packages
