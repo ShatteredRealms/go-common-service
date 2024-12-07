@@ -443,8 +443,8 @@ func SetupRedisWithDocker() (closeFn func() error, cfg config.DBPoolConfig, err 
 				"incr",
 				"ping",
 			}, dockertest.ExecOptions{
-				StdOut: os.Stdout,
-				StdErr: os.Stderr,
+				// StdOut: os.Stdout,
+				// StdErr: os.Stderr,
 			})
 			if code != 0 {
 				return fmt.Errorf("redis-cli not ready: code %d", code)
