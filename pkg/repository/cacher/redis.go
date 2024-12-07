@@ -97,6 +97,10 @@ func NewRedisCache(ctx context.Context, dbPoolConf config.DBPoolConfig) (caches.
 		Password: dbPoolConf.Master.Password,
 	})
 
+	err := rdb.Ping(ctx).Err()
+	if err != nil {
+		return nil, fmt.Errorf("redis ping: %w", err)
+	}
 	if err := redisotel.InstrumentTracing(rdb); err != nil {
 		return nil, fmt.Errorf("tracing instrumentation: %w", err)
 	}
