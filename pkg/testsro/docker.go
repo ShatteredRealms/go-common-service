@@ -415,6 +415,8 @@ func SetupRedisWithDocker() (closeFn func() error, cfg config.DBPoolConfig, err 
 			"INITIAL_PORT=7000",
 			"MASTERS=3",
 			"SLAVES_PER_MASTER=1",
+			"REDIS_CLUSTER_IP=0.0.0.0",
+			"IP=0.0.0.0",
 		},
 	}
 
