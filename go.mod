@@ -156,4 +156,5 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0
 	golang.org/x/sys v0.27.0 // indirect
 	gorm.io/gorm v1.25.12
+	gorm.io/plugin/soft_delete v1.2.1
 )
