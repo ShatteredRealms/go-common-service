@@ -48,6 +48,7 @@ func TestRepository(t *testing.T) {
 		Expect(mdbCloseFunc).NotTo(BeNil())
 
 		redisCloseFunc, data.RedisConfig, err = testsro.SetupRedisWithDocker()
+		Expect(err).NotTo(HaveOccurred())
 
 		data.GormConfig = config.DBConfig{
 			ServerAddress: config.ServerAddress{

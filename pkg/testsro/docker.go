@@ -432,6 +432,30 @@ func SetupRedisWithDocker() (closeFn func() error, cfg config.DBPoolConfig, err 
 		return resource.Close()
 	}
 
+	for _, port := range []string{"7000", "7001", "7002", "7003", "7004", "7005"} {
+		// retry until redis cluster is ready
+		err = pool.Retry(func() (err error) {
+			code, err := resource.Exec([]string{
+				"redis-cli",
+				"-p",
+				port,
+				"--raw",
+				"incr",
+				"ping",
+			}, dockertest.ExecOptions{
+				StdOut: os.Stdout,
+				StdErr: os.Stderr,
+			})
+			if code != 0 {
+				return fmt.Errorf("redis-cli not ready: code %d", code)
+			}
+			return err
+		})
+		if err != nil {
+			return
+		}
+	}
+
 	// container is ready, return *gorm.Db for testing
 	cfg = config.DBPoolConfig{
 		Master: config.DBConfig{
