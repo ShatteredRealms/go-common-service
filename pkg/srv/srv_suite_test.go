@@ -45,7 +45,7 @@ var (
 	kcCfg = config.KeycloakConfig{
 		Realm:        "default",
 		Id:           "738a426a-da91-4b16-b5fc-92d63a22eb76",
-		ClientId:     "sro-character",
+		ClientId:     "sro-character-service",
 		ClientSecret: "**********",
 	}
 )

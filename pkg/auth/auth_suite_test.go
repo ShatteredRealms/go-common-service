@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
@@ -23,18 +24,16 @@ var (
 		ID:            new(string),
 		Username:      gocloak.StringP("testadmin"),
 		Enabled:       gocloak.BoolP(true),
-		Totp:          gocloak.BoolP(true),
+		Totp:          gocloak.BoolP(false),
 		EmailVerified: gocloak.BoolP(true),
 		FirstName:     gocloak.StringP("adminfirstname"),
 		LastName:      gocloak.StringP("adminlastname"),
 		Email:         gocloak.StringP("admin@example.com"),
-		Credentials: &[]gocloak.CredentialRepresentation{
-			{
-				Temporary: gocloak.BoolP(false),
-				Type:      gocloak.StringP("password"),
-				Value:     gocloak.StringP("Password1!"),
-			},
-		},
+		Credentials: &[]gocloak.CredentialRepresentation{{
+			Temporary: gocloak.BoolP(false),
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP("Password1!"),
+		}},
 	}
 
 	clientToken *gocloak.JWT
@@ -45,7 +44,7 @@ var (
 	kcCfg = config.KeycloakConfig{
 		Realm:        "default",
 		Id:           "738a426a-da91-4b16-b5fc-92d63a22eb76",
-		ClientId:     "sro-character",
+		ClientId:     "sro-character-service",
 		ClientSecret: "**********",
 	}
 )
@@ -74,6 +73,7 @@ func TestAuth(t *testing.T) {
 
 		*admin.ID, err = keycloak.CreateUser(context.Background(), clientToken.AccessToken, kcCfg.Realm, admin)
 		Expect(err).NotTo(HaveOccurred())
+		Expect(*admin.ID).NotTo(BeEmpty())
 
 		saRole, err := keycloak.GetRealmRole(context.Background(), clientToken.AccessToken, kcCfg.Realm, "super admin")
 		Expect(err).NotTo(HaveOccurred())
@@ -106,14 +106,17 @@ func TestAuth(t *testing.T) {
 			kcCfg.Realm,
 		)
 		Expect(err).NotTo(HaveOccurred())
-		adminToken, err = keycloak.GetToken(context.Background(), kcCfg.Realm, gocloak.TokenOptions{
-			ClientID:     &kcCfg.ClientId,
-			ClientSecret: &kcCfg.ClientSecret,
-			GrantType:    gocloak.StringP("password"),
-			Username:     admin.Username,
-			Password:     gocloak.StringP("Password1!"),
-		})
-		Expect(err).NotTo(HaveOccurred())
+		Eventually(func() error {
+			adminToken, err = keycloak.Login(
+				context.Background(),
+				kcCfg.ClientId,
+				kcCfg.ClientSecret,
+				kcCfg.Realm,
+				*admin.Username,
+				*(*admin.Credentials)[0].Value,
+			)
+			return err
+		}).Within(time.Minute).Should(Succeed())
 
 		admins, err := keycloak.GetUsers(
 			context.Background(),

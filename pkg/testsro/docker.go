@@ -39,7 +39,7 @@ func SetupKeycloakWithDocker() (closeFn func() error, host string, err error) {
 
 	pool.MaxWait = time.Second * 10
 	fnConfig := func(config *docker.HostConfig) {
-		config.AutoRemove = true
+		// config.AutoRemove = true
 		config.RestartPolicy = docker.NeverRestart()
 	}
 
@@ -53,13 +53,12 @@ func SetupKeycloakWithDocker() (closeFn func() error, host string, err error) {
 	}
 	keycloakRunDockerOpts := &dockertest.RunOptions{
 		Repository: "quay.io/keycloak/keycloak",
-		Tag:        "21.0.0",
-		Env:        []string{"KEYCLOAK_ADMIN=admin", "KEYCLOAK_ADMIN_PASSWORD=admin"},
+		Tag:        "26.0.5",
+		Env:        []string{"KC_BOOSTRAP_KEYCLOAK_ADMIN=admin", "KC_BOOTSTRAP_KEYCLOAK_ADMIN_PASSWORD=admin"},
 		Cmd: []string{
 			"start-dev",
 			"--import-realm",
 			"--health-enabled=true",
-			"--features=declarative-user-profile",
 		},
 		Mounts:       []string{fmt.Sprintf("%s:/opt/keycloak/data/import/realm-export.json", realmExportFile)},
 		ExposedPorts: []string{"8080/tcp"},
@@ -94,32 +93,37 @@ func SetupKeycloakWithDocker() (closeFn func() error, host string, err error) {
 		return err
 	})
 
-	err = pool.Retry(func() error {
-		code, err := keycloakResource.Exec([]string{
-			"bin/kc.sh",
-			"start-dev",
-			"--health-enabled=true",
-			"--features=declarative-user-profile",
-			"--hostname",
-			fmt.Sprintf("localhost:%s", keycloakResource.GetPort("8080/tcp")),
-		}, dockertest.ExecOptions{
-			StdOut: os.Stdout,
-			StdErr: os.Stderr,
-		})
-		if err != nil {
-			return err
-		}
-		if code != 0 {
-			return fmt.Errorf("keycloak not ready: code %d", code)
-		}
-		return nil
-		return err
-	})
+	// err = pool.Retry(func() error {
+	// 	code, err := keycloakResource.Exec([]string{
+	// 		"bin/kc.sh",
+	// 		"start-dev",
+	// 		"--health-enabled=true",
+	// 		"--hostname",
+	// 		fmt.Sprintf("localhost:%s", keycloakResource.GetPort("8080/tcp")),
+	// 	}, dockertest.ExecOptions{
+	// 		// StdOut: os.Stdout,
+	// 		// StdErr: os.Stderr,
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if code != 0 {
+	// 		return fmt.Errorf("keycloak not ready: code %d", code)
+	// 	}
+	// 	return nil
+	// })
+	//
+	// host = "http://127.0.0.1:" + keycloakResource.GetPort("8080/tcp")
+	// err = pool.Retry(func() error {
+	// 	_, err := http.Get(host + "/health/ready")
+	// 	return err
+	// })
 
 	err = pool.Retry(func() error {
 		_, err = http.Get(host + "/realms/default")
 		return err
 	})
+
 	if err != nil {
 		return
 	}
