@@ -54,15 +54,11 @@ var _ = Describe("Kafka", func() {
 					Eventually(ctx, func() error {
 						return busWriter.Publish(ctx, msg)
 					}).ShouldNot(HaveOccurred())
-					go func() {
-						for ctx.Err() == nil && busWriter != nil {
-							busWriter.Publish(ctx, TestBusMessage{
-								Type: msg.GetType(),
-								Id:   faker.Username(),
-							})
-						}
-					}()
-					Expect(func() { busWriter.Close() }).ToNot(Panic())
+					Expect(busWriter.Publish(ctx, TestBusMessage{
+						Type: msg.GetType(),
+						Id:   faker.Username(),
+					})).To(Succeed())
+					Expect(busWriter.Close()).To(Succeed())
 				})
 			})
 			When("Writer is closed", func() {

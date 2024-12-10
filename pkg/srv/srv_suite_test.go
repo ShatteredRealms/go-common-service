@@ -1,10 +1,11 @@
 package srv_test
 
 import (
+	"bytes"
 	"context"
-	"fmt"
-	"strings"
+	"encoding/gob"
 	"testing"
+	"time"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
@@ -15,6 +16,11 @@ import (
 	"github.com/sirupsen/logrus/hooks/test"
 	"google.golang.org/grpc/metadata"
 )
+
+type initializeData struct {
+	KeycloakHost string
+	AdminToken   string
+}
 
 var (
 	keycloak *gocloak.GoCloak
@@ -37,9 +43,6 @@ var (
 		},
 	}
 
-	clientToken *gocloak.JWT
-	adminToken  *gocloak.JWT
-
 	incAdminCtx context.Context
 
 	kcCfg = config.KeycloakConfig{
@@ -52,17 +55,16 @@ var (
 
 func TestSrv(t *testing.T) {
 	var keycloakCloseFunc func() error
+	var data initializeData
 
 	SynchronizedBeforeSuite(func() []byte {
 		log.Logger, _ = test.NewNullLogger()
-		var host string
 		var err error
-		keycloakCloseFunc, host, err = testsro.SetupKeycloakWithDocker()
-		kcCfg.BaseURL = host
+		keycloakCloseFunc, kcCfg.BaseURL, err = testsro.SetupKeycloakWithDocker()
 		Expect(err).NotTo(HaveOccurred())
-		Expect(host).NotTo(BeNil())
+		Expect(kcCfg.BaseURL).NotTo(BeNil())
 
-		keycloak = gocloak.NewClient(host)
+		keycloak = gocloak.NewClient(kcCfg.BaseURL)
 		Expect(keycloak).NotTo(BeNil())
 
 		clientToken, err := keycloak.LoginClient(
@@ -73,63 +75,56 @@ func TestSrv(t *testing.T) {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		*admin.ID, err = keycloak.CreateUser(context.Background(), clientToken.AccessToken, kcCfg.Realm, admin)
-		Expect(err).NotTo(HaveOccurred())
+		setupUser := func(user *gocloak.User, roleName string, tokenStr *string) {
+			*user.ID, err = keycloak.CreateUser(context.Background(), clientToken.AccessToken, kcCfg.Realm, *user)
+			Expect(err).NotTo(HaveOccurred())
+			role, err := keycloak.GetRealmRole(context.Background(), clientToken.AccessToken, kcCfg.Realm, roleName)
+			Expect(err).NotTo(HaveOccurred())
+			err = keycloak.AddRealmRoleToUser(
+				context.Background(),
+				clientToken.AccessToken,
+				kcCfg.Realm,
+				*user.ID,
+				[]gocloak.Role{*role},
+			)
+			Expect(err).NotTo(HaveOccurred())
+			var token *gocloak.JWT
+			Eventually(func() error {
+				token, err = keycloak.Login(
+					context.Background(),
+					kcCfg.ClientId,
+					kcCfg.ClientSecret,
+					kcCfg.Realm,
+					*user.Username,
+					*(*user.Credentials)[0].Value,
+				)
+				return err
+			}).Within(time.Minute).Should(Succeed())
+			Expect(err).NotTo(HaveOccurred())
+			(*tokenStr) = token.AccessToken
+		}
 
-		saRole, err := keycloak.GetRealmRole(context.Background(), clientToken.AccessToken, kcCfg.Realm, "super admin")
-		Expect(err).NotTo(HaveOccurred())
+		setupUser(&admin, "super admin", &data.AdminToken)
+		data.KeycloakHost = kcCfg.BaseURL
 
-		err = keycloak.AddRealmRoleToUser(
-			context.Background(),
-			clientToken.AccessToken,
-			kcCfg.Realm,
-			*admin.ID,
-			[]gocloak.Role{*saRole},
-		)
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		Expect(enc.Encode(data)).To(Succeed())
 
-		out := fmt.Sprintf("%s", host)
+		return buf.Bytes()
+	}, func(inBytes []byte) {
+		dec := gob.NewDecoder(bytes.NewBuffer(inBytes))
+		Expect(dec.Decode(&data)).To(Succeed())
 
-		return []byte(out)
-	}, func(data []byte) {
-		log.Logger, _ = test.NewNullLogger()
-		splitData := strings.Split(string(data), "\n")
-		Expect(splitData).To(HaveLen(1))
+		kcCfg.BaseURL = data.KeycloakHost
 
-		host := splitData[0]
-		kcCfg.BaseURL = host
-
-		keycloak = gocloak.NewClient(string(host))
+		keycloak = gocloak.NewClient(kcCfg.BaseURL)
 		Expect(keycloak).NotTo(BeNil())
 
-		clientToken, err := keycloak.LoginClient(
-			context.Background(),
-			kcCfg.ClientId,
-			kcCfg.ClientSecret,
-			kcCfg.Realm,
-		)
-		Expect(err).NotTo(HaveOccurred())
-		adminToken, err = keycloak.GetToken(context.Background(), kcCfg.Realm, gocloak.TokenOptions{
-			ClientID:     &kcCfg.ClientId,
-			ClientSecret: &kcCfg.ClientSecret,
-			GrantType:    gocloak.StringP("password"),
-			Username:     admin.Username,
-			Password:     gocloak.StringP("Password1!"),
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		admins, err := keycloak.GetUsers(
-			context.Background(),
-			clientToken.AccessToken,
-			kcCfg.Realm,
-			gocloak.GetUsersParams{Username: admin.Username},
-		)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(admins).To(HaveLen(1))
-		admin = *admins[0]
-
+		Expect(data.AdminToken).NotTo(BeEmpty())
 		md := metadata.New(
 			map[string]string{
-				"authorization": "Bearer " + adminToken.AccessToken,
+				"authorization": "Bearer " + data.AdminToken,
 			},
 		)
 		incAdminCtx = metadata.NewIncomingContext(context.Background(), md)
@@ -143,5 +138,5 @@ func TestSrv(t *testing.T) {
 	})
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Auth Suite")
+	RunSpecs(t, "Srv Suite")
 }

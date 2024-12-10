@@ -23,10 +23,10 @@ var _ = Describe("Kafka repository", func() {
 				Eventually(func(g Gomega) error {
 					kafka, err = repository.ConnectKafka(config.ServerAddress{
 						Port: port,
-						Host: "localhost",
+						Host: "127.0.0.1",
 					})
 					return err
-				}).Within(time.Minute).Should(Succeed())
+				}).Within(time.Second * 15).Should(Succeed())
 				Expect(kafka).NotTo(BeNil())
 			})
 		})

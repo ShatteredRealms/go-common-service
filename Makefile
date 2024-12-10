@@ -82,14 +82,12 @@ report-watch:
 
 dev-watch: test-watch report-watch
 
-clean-mocks:
-	rm -rf $(ROOT_DIR)/pkg/mocks
+mocks: $(MOCK_INTERFACES)
+$(MOCK_INTERFACES):
+	mockgen \
+		-source="$@.go" \
+		-destination="$(@D)/mocks/$(@F).go"
 
-mocks: clean-mocks
-	mkdir -p $(ROOT_DIR)/pkg/mocks
-	@for file in $(MOCK_INTERFACES); do \
-		mockgen -package=mocks -source=$${file}.go -destination="$(ROOT_DIR)/pkg/mocks/$${file##*/}_mock.go"; \
-	done
 run:
 	go run $(ROOT_DIR)/cmd/$(APP_NAME)
 
