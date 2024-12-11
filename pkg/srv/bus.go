@@ -43,7 +43,7 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 		var err error
 		builder := strings.Builder{}
 		for name, reader := range b.readers {
-			errors.Join(err, reader.Reset(ctx))
+			err = errors.Join(err, reader.Reset(ctx))
 			builder.WriteString(string(name))
 			builder.WriteString(", ")
 		}
@@ -79,7 +79,7 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 		var err error
 		builder := strings.Builder{}
 		for name, busCallback := range b.writerCallbacks {
-			errors.Join(err, busCallback())
+			err = errors.Join(err, busCallback())
 			builder.WriteString(string(name))
 			builder.WriteString(", ")
 		}
