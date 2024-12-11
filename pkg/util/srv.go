@@ -33,20 +33,18 @@ func GrpcClientWithOtel(address string) (*grpc.ClientConn, error) {
 func InitServerDefaults(kcClient gocloak.KeycloakClient, realm string) (*grpc.Server, *runtime.ServeMux) {
 	opts := []logging.Option{
 		logging.WithCodes(logging.DefaultErrorToCode),
-		logging.WithFieldsFromContextAndCallMeta(logTraceData),
+		logging.WithFieldsFromContextAndCallMeta(logSroData),
 	}
 
 	return grpc.NewServer(
 			grpc.StatsHandler(otelgrpc.NewServerHandler()),
 			grpc.ChainUnaryInterceptor(
-				logging.UnaryServerInterceptor(interceptorLogger(log.Logger), opts...),
 				selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(sroauth.AuthFunc(kcClient, realm)), selector.MatchFunc(sroauth.NotPublicServiceMatcher)),
-				logging.UnaryServerInterceptor(interceptorLogger(log.Logger), logging.WithFieldsFromContextAndCallMeta(logRequestorData)),
+				logging.UnaryServerInterceptor(interceptorLogger(log.Logger), opts...),
 			),
 			grpc.ChainStreamInterceptor(
-				logging.StreamServerInterceptor(interceptorLogger(log.Logger), opts...),
 				selector.StreamServerInterceptor(auth.StreamServerInterceptor(sroauth.AuthFunc(kcClient, realm)), selector.MatchFunc(sroauth.NotPublicServiceMatcher)),
-				logging.StreamServerInterceptor(interceptorLogger(log.Logger), logging.WithFieldsFromContextAndCallMeta(logRequestorData)),
+				logging.StreamServerInterceptor(interceptorLogger(log.Logger), opts...),
 			)),
 		runtime.NewServeMux()
 }
@@ -79,16 +77,11 @@ func interceptorLogger(l logrus.FieldLogger) logging.Logger {
 	})
 }
 
-func logTraceData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
+func logSroData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
 	out := logging.Fields{}
 	if spanCtx := trace.SpanContextFromContext(ctx); spanCtx.IsValid() {
 		out = append(out, "traceId", spanCtx.TraceID().String())
 	}
-	return out
-}
-
-func logRequestorData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
-	out := logging.Fields{}
 	if claims, ok := sroauth.RetrieveClaims(ctx); ok {
 		out = append(out, "requestor", fmt.Sprintf("%s:%s", claims.Username, claims.Subject))
 	}
