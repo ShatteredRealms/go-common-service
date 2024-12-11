@@ -43,18 +43,9 @@ func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
 	return nil
 }
 
-func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []any, transformer MessageTransformer[T]) error {
-	if len(msgs) == 0 {
-		return nil
-	}
-
+func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
 	k.wg.Add(1)
 	defer k.wg.Done()
-
-	_, ok := msgs[0].(T)
-	if transformer == nil && !ok {
-		return fmt.Errorf("Expecting %T but got %T", msgs[0], msgs)
-	}
 
 	k.setupWriter()
 
@@ -66,22 +57,9 @@ func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []any, transfo
 
 	for chunk := range slices.Chunk(msgs, runtime.NumCPU()) {
 		wg.Add(1)
-		go func(chunk []any) {
+		go func(chunk []T) {
 			defer wg.Done()
-			var ok bool
-			for _, genericMsg := range chunk {
-				var msg T
-				if transformer != nil {
-					msg = transformer(msg)
-				} else {
-					msg = genericMsg.(T)
-					if !ok {
-						errsMu.Lock()
-						errs = errors.Join(errs, fmt.Errorf("Expecting %T but got %T", msg, genericMsg))
-						errsMu.Unlock()
-						return
-					}
-				}
+			for _, msg := range chunk {
 				val, err := k.encodeMessage(msg)
 				if err != nil {
 					errsMu.Lock()

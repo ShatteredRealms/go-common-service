@@ -9,8 +9,6 @@ type BusMessage[T any] interface {
 	GetId() string
 }
 
-type MessageTransformer[T BusMessage[any]] func(any) T
-
 type BusModelMessage[T any] interface {
 	BusMessage[T]
 	WasDeleted() bool
@@ -29,6 +27,6 @@ type MessageBusReader[T BusMessage[any]] interface {
 type MessageBusWriter[T BusMessage[any]] interface {
 	GetMessageType() BusMessageType
 	Publish(context.Context, T) error
-	PublishMany(context.Context, []any, MessageTransformer[T]) error
+	PublishMany(context.Context, []T) error
 	Close() error
 }
