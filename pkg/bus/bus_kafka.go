@@ -10,6 +10,7 @@ import (
 var (
 	ErrSerializeMessage = errors.New("unable to serialize message")
 	ErrSendingMessage   = errors.New("unable to send message on bus")
+	ErrEncodingMessage  = errors.New("unable to encode message")
 )
 
 type kafkaBus[T BusMessage[any]] struct {

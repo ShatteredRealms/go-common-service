@@ -27,5 +27,6 @@ type MessageBusReader[T BusMessage[any]] interface {
 type MessageBusWriter[T BusMessage[any]] interface {
 	GetMessageType() BusMessageType
 	Publish(context.Context, T) error
+	PublishMany(context.Context, []T) error
 	Close() error
 }

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
@@ -19,31 +21,62 @@ type kafkaBusWriter[T BusMessage[any]] struct {
 
 // Publish implements MessageBus.
 func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
-	k.mu.Lock()
-	if k.Writer == nil {
-		k.Writer = kafka.NewWriter(kafka.WriterConfig{
-			Brokers:  k.brokers.Addresses(),
-			Topic:    k.topic,
-			Balancer: &kafka.LeastBytes{},
-			Async:    true,
-			Logger:   kafka.LoggerFunc(log.Logger.Tracef),
-		})
-		k.Writer.AllowAutoTopicCreation = true
+	k.setupWriter()
+
+	val, err := k.encodeMessage(msg)
+	if err != nil {
+		return err
 	}
-	k.mu.Unlock()
 
 	k.wg.Add(1)
 	defer k.wg.Done()
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(msg)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrSerializeMessage, err)
-	}
-
 	err = k.Writer.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(msg.GetId()),
-		Value: buf.Bytes(),
+		Value: val,
 	})
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrSendingMessage, err)
+	}
+
+	return nil
+}
+
+func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
+	k.wg.Add(1)
+	defer k.wg.Done()
+
+	k.setupWriter()
+
+	messages := make([]kafka.Message, len(msgs))
+	var errs error
+	errsMu := sync.Mutex{}
+	wg := sync.WaitGroup{}
+
+	wg.Add(len(msgs))
+	for idx, msg := range msgs {
+		go func(msg T) {
+			defer k.wg.Done()
+			val, err := k.encodeMessage(msg)
+			if err != nil {
+				errsMu.Lock()
+				errs = errors.Join(errs, fmt.Errorf("%w: %w", ErrEncodingMessage, err))
+				errsMu.Unlock()
+				return
+			}
+
+			messages[idx] = kafka.Message{
+				Key:   []byte(msg.GetId()),
+				Value: val,
+			}
+		}(msg)
+	}
+
+	wg.Wait()
+	if errs != nil {
+		return errs
+	}
+
+	err := k.Writer.WriteMessages(ctx, messages...)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrSendingMessage, err)
 	}
@@ -57,12 +90,41 @@ func (k *kafkaBusWriter[T]) GetMessageType() BusMessageType {
 
 func (k *kafkaBusWriter[T]) Close() error {
 	k.wg.Wait()
+
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
 	if k.Writer != nil {
 		err := k.Writer.Close()
 		k.Writer = nil
 		return err
 	}
+
 	return nil
+}
+
+func (k *kafkaBusWriter[T]) setupWriter() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.Writer == nil {
+		k.Writer = kafka.NewWriter(kafka.WriterConfig{
+			Brokers:  k.brokers.Addresses(),
+			Topic:    k.topic,
+			Balancer: &kafka.LeastBytes{},
+			Async:    true,
+			Logger:   kafka.LoggerFunc(log.Logger.Tracef),
+		})
+		k.Writer.AllowAutoTopicCreation = true
+	}
+}
+
+func (k *kafkaBusWriter[T]) encodeMessage(msg T) ([]byte, error) {
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(msg)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrSerializeMessage, err)
+	}
+	return buf.Bytes(), nil
 }
 
 func NewKafkaMessageBusWriter[T BusMessage[any]](brokers config.ServerAddresses, msg T) MessageBusWriter[T] {
