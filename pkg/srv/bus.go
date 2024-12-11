@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type WriterResetCallback func() error
+type WriterResetCallback func(ctx context.Context) error
 
 type busService struct {
 	pb.UnimplementedBusServiceServer
@@ -89,7 +89,7 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 		var err error
 		builder := strings.Builder{}
 		for name, busCallback := range b.writerCallbacks {
-			err = errors.Join(err, busCallback())
+			err = errors.Join(err, busCallback(ctx))
 			builder.WriteString(string(name))
 			builder.WriteString(", ")
 		}
@@ -108,7 +108,7 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 		return nil, status.Errorf(codes.NotFound, ErrBusNotFound.Error())
 	}
 
-	err = busCallback()
+	err = busCallback(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Errorf("%w: %w", ErrBusReset, err).Error())
 	}
