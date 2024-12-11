@@ -55,9 +55,17 @@ func (k *kafkaBusReader[T]) FetchMessage(ctx context.Context) (*T, error) {
 			Logger:   kafka.LoggerFunc(log.Logger.Tracef),
 		})
 	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	var err error
-	*k.currentMessage, err = k.Reader.FetchMessage(ctx)
+	go func() {
+		*k.currentMessage, err = k.Reader.FetchMessage(ctx)
+		wg.Done()
+	}()
 	k.mu.Unlock()
+	wg.Wait()
+
 	if k.isResetting {
 		log.Logger.WithContext(ctx).Info("Reset started, skipping message")
 		return k.FetchMessage(ctx)
@@ -88,8 +96,10 @@ func (k *kafkaBusReader[T]) Reset(ctx context.Context) error {
 	// Close the reader if it is open and cancel the current message
 	if k.Reader != nil {
 		k.Reader.Close()
-		k.Reader = nil
-		k.currentMessage = nil
+		defer func() {
+			k.Reader = nil
+			k.currentMessage = nil
+		}()
 	}
 
 	// Connect to the kafka cluster
