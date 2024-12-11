@@ -80,3 +80,12 @@ func (t *TestingBus) ProcessSucceeded(context.Context) error {
 	t.CurrentMessage = nil
 	return t.ErrOnProcessSucceeded
 }
+
+func (t *TestingBus) Reset(context.Context) error {
+	t.CurrentMessage = nil
+	return nil
+}
+
+func (t *TestingBus) GetMessageType() bus.BusMessageType {
+	return bus.BusMessageType("test")
+}
