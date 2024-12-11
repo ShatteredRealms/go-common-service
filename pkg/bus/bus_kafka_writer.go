@@ -13,6 +13,7 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/segmentio/kafka-go"
+	"go.opentelemetry.io/otel"
 )
 
 // MessageBusWriter is for writing message asynchronously to the message bus.
@@ -23,6 +24,9 @@ type kafkaBusWriter[T BusMessage[any]] struct {
 
 // Publish implements MessageBus.
 func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
+	ctx, span := k.tracer.Start(ctx, "Publish")
+	defer span.End()
+	span.SetAttributes(BusMessageAttributes(msg)...)
 	k.setupWriter()
 
 	val, err := k.encodeMessage(msg)
@@ -30,6 +34,8 @@ func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
 		return err
 	}
 
+	ctx, innerSpan := k.tracer.Start(ctx, "Publish.SendMessages")
+	defer innerSpan.End()
 	k.wg.Add(1)
 	defer k.wg.Done()
 	err = k.Writer.WriteMessages(ctx, kafka.Message{
@@ -47,6 +53,14 @@ func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
 	k.wg.Add(1)
 	defer k.wg.Done()
 
+	if len(msgs) == 0 {
+		return nil
+	}
+
+	ctx, span := k.tracer.Start(ctx, "PublishMany")
+	span.SetAttributes(BusMessageAttributes(msgs[0])[0])
+	defer span.End()
+
 	k.setupWriter()
 
 	messages := make([]kafka.Message, len(msgs))
@@ -55,6 +69,7 @@ func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
 	errsMu := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
+	ctx, innerSpan := k.tracer.Start(ctx, "PublishMany.CreateMessages")
 	for chunk := range slices.Chunk(msgs, runtime.NumCPU()) {
 		wg.Add(1)
 		go func(chunk []T) {
@@ -79,10 +94,13 @@ func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
 	}
 
 	wg.Wait()
+	innerSpan.End()
 	if errs != nil {
 		return errs
 	}
 
+	ctx, innerSpan = k.tracer.Start(ctx, "PublishMany.SendMessages")
+	defer innerSpan.End()
 	err := k.Writer.WriteMessages(ctx, messages...)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrSendingMessage, err)
@@ -139,6 +157,7 @@ func NewKafkaMessageBusWriter[T BusMessage[any]](brokers config.ServerAddresses,
 		kafkaBus: &kafkaBus[T]{
 			brokers: brokers,
 			topic:   string(msg.GetType()),
+			tracer:  otel.Tracer(fmt.Sprintf("sro.bus.kafka.reader.%s", msg.GetType())),
 		},
 	}
 }

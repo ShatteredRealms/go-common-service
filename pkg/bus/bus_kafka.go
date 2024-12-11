@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -16,6 +17,8 @@ var (
 type kafkaBus[T BusMessage[any]] struct {
 	brokers config.ServerAddresses
 	topic   string
+
+	tracer trace.Tracer
 
 	mu sync.Mutex
 	wg sync.WaitGroup

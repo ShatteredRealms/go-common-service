@@ -1,6 +1,8 @@
 package srospan
 
-import "go.opentelemetry.io/otel/attribute"
+import (
+	"go.opentelemetry.io/otel/attribute"
+)
 
 func SourceOwnerId(val string) attribute.KeyValue {
 	return attribute.String("sro.source.owner.id", val)

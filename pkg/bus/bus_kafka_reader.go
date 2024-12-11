@@ -12,6 +12,7 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/segmentio/kafka-go"
+	"go.opentelemetry.io/otel"
 )
 
 // MessageBusReader is for reading messages from the message bus synchronously.
@@ -236,6 +237,7 @@ func NewKafkaMessageBusReader[T BusMessage[any]](brokers config.ServerAddresses,
 		kafkaBus: &kafkaBus[T]{
 			brokers: brokers,
 			topic:   string(msg.GetType()),
+			tracer:  otel.Tracer(fmt.Sprintf("sro.bus.kafka.reader.%s", msg.GetType())),
 		},
 		groupId: groupId,
 	}

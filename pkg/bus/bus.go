@@ -1,6 +1,10 @@
 package bus
 
-import "context"
+import (
+	"context"
+
+	"go.opentelemetry.io/otel/attribute"
+)
 
 type BusMessageType string
 
@@ -33,4 +37,11 @@ type MessageBusWriter[T BusMessage[any]] interface {
 	Publish(context.Context, T) error
 	PublishMany(context.Context, []T) error
 	Close() error
+}
+
+func BusMessageAttributes(msg BusMessage[any]) []attribute.KeyValue {
+	return []attribute.KeyValue{
+		attribute.String("sro.bus.message.type", string(msg.GetType())),
+		attribute.String("sro.bus.message.id", msg.GetId()),
+	}
 }
