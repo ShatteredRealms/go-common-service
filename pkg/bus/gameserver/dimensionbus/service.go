@@ -6,8 +6,8 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
-type Service[T bus.BusMessage[any]] interface {
-	bus.BusProcessor[T]
+type Service interface {
+	bus.BusProcessor[Message]
 	GetDimensions(ctx context.Context) (*Dimensions, error)
 	GetDimensionById(ctx context.Context, dimensionId string) (*Dimension, error)
 }
@@ -19,7 +19,7 @@ type service struct {
 func NewService(
 	repo Repository,
 	dimensionBus bus.MessageBusReader[Message],
-) Service[Message] {
+) Service {
 	return &service{
 		DefaultBusProcessor: bus.DefaultBusProcessor[Message]{
 			Reader: dimensionBus,

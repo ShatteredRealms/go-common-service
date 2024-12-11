@@ -6,8 +6,8 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
-type Service[T bus.BusMessage[any]] interface {
-	bus.BusProcessor[T]
+type Service interface {
+	bus.BusProcessor[Message]
 	GetMaps(ctx context.Context) (*Maps, error)
 	GetMapById(ctx context.Context, mapId string) (*Map, error)
 }
@@ -19,7 +19,7 @@ type service struct {
 func NewService(
 	repo Repository,
 	mapBus bus.MessageBusReader[Message],
-) Service[Message] {
+) Service {
 	return &service{
 		DefaultBusProcessor: bus.DefaultBusProcessor[Message]{
 			Reader: mapBus,
