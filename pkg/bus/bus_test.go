@@ -89,3 +89,7 @@ func (t *TestingBus) Reset(context.Context) error {
 func (t *TestingBus) GetMessageType() bus.BusMessageType {
 	return bus.BusMessageType("test")
 }
+
+func (t *TestingBus) GetGroup() string {
+	return "test"
+}
