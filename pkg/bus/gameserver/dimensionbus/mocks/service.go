@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	bus "github.com/ShatteredRealms/go-common-service/pkg/bus"
 	dimensionbus "github.com/ShatteredRealms/go-common-service/pkg/bus/gameserver/dimensionbus"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -69,6 +70,20 @@ func (m *MockService) GetDimensions(ctx context.Context) (*dimensionbus.Dimensio
 func (mr *MockServiceMockRecorder) GetDimensions(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensions", reflect.TypeOf((*MockService)(nil).GetDimensions), ctx)
+}
+
+// GetReader mocks base method.
+func (m *MockService) GetReader() bus.MessageBusReader[dimensionbus.Message] {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReader")
+	ret0, _ := ret[0].(bus.MessageBusReader[dimensionbus.Message])
+	return ret0
+}
+
+// GetReader indicates an expected call of GetReader.
+func (mr *MockServiceMockRecorder) GetReader() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReader", reflect.TypeOf((*MockService)(nil).GetReader))
 }
 
 // IsProcessing mocks base method.

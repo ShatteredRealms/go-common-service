@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	bus "github.com/ShatteredRealms/go-common-service/pkg/bus"
 	mapbus "github.com/ShatteredRealms/go-common-service/pkg/bus/gameserver/mapbus"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,18 +43,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetMapById mocks base method.
-func (m *MockService) GetMapById(ctx context.Context, mId string) (*mapbus.Map, error) {
+func (m *MockService) GetMapById(ctx context.Context, mapId string) (*mapbus.Map, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMapById", ctx, mId)
+	ret := m.ctrl.Call(m, "GetMapById", ctx, mapId)
 	ret0, _ := ret[0].(*mapbus.Map)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMapById indicates an expected call of GetMapById.
-func (mr *MockServiceMockRecorder) GetMapById(ctx, mId any) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetMapById(ctx, mapId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMapById", reflect.TypeOf((*MockService)(nil).GetMapById), ctx, mId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMapById", reflect.TypeOf((*MockService)(nil).GetMapById), ctx, mapId)
 }
 
 // GetMaps mocks base method.
@@ -71,26 +72,54 @@ func (mr *MockServiceMockRecorder) GetMaps(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaps", reflect.TypeOf((*MockService)(nil).GetMaps), ctx)
 }
 
-// StartProcessingBus mocks base method.
-func (m *MockService) StartProcessingBus(ctx context.Context) {
+// GetReader mocks base method.
+func (m *MockService) GetReader() bus.MessageBusReader[mapbus.Message] {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "StartProcessingBus", ctx)
+	ret := m.ctrl.Call(m, "GetReader")
+	ret0, _ := ret[0].(bus.MessageBusReader[mapbus.Message])
+	return ret0
 }
 
-// StartProcessingBus indicates an expected call of StartProcessingBus.
-func (mr *MockServiceMockRecorder) StartProcessingBus(ctx any) *gomock.Call {
+// GetReader indicates an expected call of GetReader.
+func (mr *MockServiceMockRecorder) GetReader() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartProcessingBus", reflect.TypeOf((*MockService)(nil).StartProcessingBus), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReader", reflect.TypeOf((*MockService)(nil).GetReader))
 }
 
-// StopProcessingBus mocks base method.
-func (m *MockService) StopProcessingBus() {
+// IsProcessing mocks base method.
+func (m *MockService) IsProcessing() bool {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "StopProcessingBus")
+	ret := m.ctrl.Call(m, "IsProcessing")
+	ret0, _ := ret[0].(bool)
+	return ret0
 }
 
-// StopProcessingBus indicates an expected call of StopProcessingBus.
-func (mr *MockServiceMockRecorder) StopProcessingBus() *gomock.Call {
+// IsProcessing indicates an expected call of IsProcessing.
+func (mr *MockServiceMockRecorder) IsProcessing() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopProcessingBus", reflect.TypeOf((*MockService)(nil).StopProcessingBus))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsProcessing", reflect.TypeOf((*MockService)(nil).IsProcessing))
+}
+
+// StartProcessing mocks base method.
+func (m *MockService) StartProcessing(ctx context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "StartProcessing", ctx)
+}
+
+// StartProcessing indicates an expected call of StartProcessing.
+func (mr *MockServiceMockRecorder) StartProcessing(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartProcessing", reflect.TypeOf((*MockService)(nil).StartProcessing), ctx)
+}
+
+// StopProcessing mocks base method.
+func (m *MockService) StopProcessing() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "StopProcessing")
+}
+
+// StopProcessing indicates an expected call of StopProcessing.
+func (mr *MockServiceMockRecorder) StopProcessing() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopProcessing", reflect.TypeOf((*MockService)(nil).StopProcessing))
 }

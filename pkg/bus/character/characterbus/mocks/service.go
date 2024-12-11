@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	bus "github.com/ShatteredRealms/go-common-service/pkg/bus"
 	characterbus "github.com/ShatteredRealms/go-common-service/pkg/bus/character/characterbus"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -84,6 +85,20 @@ func (m *MockService) GetCharacters(ctx context.Context) (*characterbus.Characte
 func (mr *MockServiceMockRecorder) GetCharacters(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCharacters", reflect.TypeOf((*MockService)(nil).GetCharacters), ctx)
+}
+
+// GetReader mocks base method.
+func (m *MockService) GetReader() bus.MessageBusReader[characterbus.Message] {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReader")
+	ret0, _ := ret[0].(bus.MessageBusReader[characterbus.Message])
+	return ret0
+}
+
+// GetReader indicates an expected call of GetReader.
+func (mr *MockServiceMockRecorder) GetReader() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReader", reflect.TypeOf((*MockService)(nil).GetReader))
 }
 
 // IsProcessing mocks base method.

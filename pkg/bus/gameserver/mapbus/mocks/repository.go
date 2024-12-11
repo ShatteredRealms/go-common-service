@@ -41,62 +41,60 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CreateMap mocks base method.
-func (m *MockRepository) CreateMap(ctx context.Context, dimensionId string) (*mapbus.Map, error) {
+// Delete mocks base method.
+func (m *MockRepository) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMap", ctx, dimensionId)
-	ret0, _ := ret[0].(*mapbus.Map)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// CreateMap indicates an expected call of CreateMap.
-func (mr *MockRepositoryMockRecorder) CreateMap(ctx, dimensionId any) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMap", reflect.TypeOf((*MockRepository)(nil).CreateMap), ctx, dimensionId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), ctx, id)
 }
 
-// DeleteMap mocks base method.
-func (m *MockRepository) DeleteMap(ctx context.Context, dimensionId string) (*mapbus.Map, error) {
+// GetAll mocks base method.
+func (m *MockRepository) GetAll(ctx context.Context) (*mapbus.Maps, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMap", ctx, dimensionId)
-	ret0, _ := ret[0].(*mapbus.Map)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DeleteMap indicates an expected call of DeleteMap.
-func (mr *MockRepositoryMockRecorder) DeleteMap(ctx, dimensionId any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMap", reflect.TypeOf((*MockRepository)(nil).DeleteMap), ctx, dimensionId)
-}
-
-// GetMapById mocks base method.
-func (m *MockRepository) GetMapById(ctx context.Context, dimensionId string) (*mapbus.Map, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMapById", ctx, dimensionId)
-	ret0, _ := ret[0].(*mapbus.Map)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMapById indicates an expected call of GetMapById.
-func (mr *MockRepositoryMockRecorder) GetMapById(ctx, dimensionId any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMapById", reflect.TypeOf((*MockRepository)(nil).GetMapById), ctx, dimensionId)
-}
-
-// GetMaps mocks base method.
-func (m *MockRepository) GetMaps(ctx context.Context) (*mapbus.Maps, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMaps", ctx)
+	ret := m.ctrl.Call(m, "GetAll", ctx)
 	ret0, _ := ret[0].(*mapbus.Maps)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMaps indicates an expected call of GetMaps.
-func (mr *MockRepositoryMockRecorder) GetMaps(ctx any) *gomock.Call {
+// GetAll indicates an expected call of GetAll.
+func (mr *MockRepositoryMockRecorder) GetAll(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaps", reflect.TypeOf((*MockRepository)(nil).GetMaps), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), ctx)
+}
+
+// GetById mocks base method.
+func (m *MockRepository) GetById(ctx context.Context, dimensionId string) (*mapbus.Map, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetById", ctx, dimensionId)
+	ret0, _ := ret[0].(*mapbus.Map)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetById indicates an expected call of GetById.
+func (mr *MockRepositoryMockRecorder) GetById(ctx, dimensionId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRepository)(nil).GetById), ctx, dimensionId)
+}
+
+// Save mocks base method.
+func (m *MockRepository) Save(ctx context.Context, data mapbus.Message) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockRepositoryMockRecorder) Save(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, data)
 }
