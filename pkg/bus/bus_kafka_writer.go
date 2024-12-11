@@ -6,6 +6,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"runtime"
+	"slices"
 	"sync"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
@@ -41,34 +43,61 @@ func (k *kafkaBusWriter[T]) Publish(ctx context.Context, msg T) error {
 	return nil
 }
 
-func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []T) error {
+func (k *kafkaBusWriter[T]) PublishMany(ctx context.Context, msgs []any, transformer MessageTransformer[T]) error {
+	if len(msgs) == 0 {
+		return nil
+	}
+
 	k.wg.Add(1)
 	defer k.wg.Done()
+
+	_, ok := msgs[0].(T)
+	if transformer == nil && !ok {
+		return fmt.Errorf("Expecting %T but got %T", msgs[0], msgs)
+	}
 
 	k.setupWriter()
 
 	messages := make([]kafka.Message, len(msgs))
+	messageMu := sync.Mutex{}
 	var errs error
 	errsMu := sync.Mutex{}
 	wg := sync.WaitGroup{}
 
-	wg.Add(len(msgs))
-	for idx, msg := range msgs {
-		go func(msg T) {
-			defer k.wg.Done()
-			val, err := k.encodeMessage(msg)
-			if err != nil {
-				errsMu.Lock()
-				errs = errors.Join(errs, fmt.Errorf("%w: %w", ErrEncodingMessage, err))
-				errsMu.Unlock()
-				return
-			}
+	for chunk := range slices.Chunk(msgs, runtime.NumCPU()) {
+		wg.Add(1)
+		go func(chunk []any) {
+			defer wg.Done()
+			var ok bool
+			for _, genericMsg := range chunk {
+				var msg T
+				if transformer != nil {
+					msg = transformer(msg)
+				} else {
+					msg = genericMsg.(T)
+					if !ok {
+						errsMu.Lock()
+						errs = errors.Join(errs, fmt.Errorf("Expecting %T but got %T", msg, genericMsg))
+						errsMu.Unlock()
+						return
+					}
+				}
+				val, err := k.encodeMessage(msg)
+				if err != nil {
+					errsMu.Lock()
+					errs = errors.Join(errs, fmt.Errorf("%w: %w", ErrEncodingMessage, err))
+					errsMu.Unlock()
+					return
+				}
 
-			messages[idx] = kafka.Message{
-				Key:   []byte(msg.GetId()),
-				Value: val,
+				messageMu.Lock()
+				messages = append(messages, kafka.Message{
+					Key:   []byte(msg.GetId()),
+					Value: val,
+				})
+				messageMu.Unlock()
 			}
-		}(msg)
+		}(chunk)
 	}
 
 	wg.Wait()
