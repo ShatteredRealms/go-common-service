@@ -72,18 +72,18 @@ func (mr *MockServiceMockRecorder) GetDimensions(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDimensions", reflect.TypeOf((*MockService)(nil).GetDimensions), ctx)
 }
 
-// GetReader mocks base method.
-func (m *MockService) GetReader() bus.MessageBusReader[dimensionbus.Message] {
+// GetResetter mocks base method.
+func (m *MockService) GetResetter() bus.Resettable {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReader")
-	ret0, _ := ret[0].(bus.MessageBusReader[dimensionbus.Message])
+	ret := m.ctrl.Call(m, "GetResetter")
+	ret0, _ := ret[0].(bus.Resettable)
 	return ret0
 }
 
-// GetReader indicates an expected call of GetReader.
-func (mr *MockServiceMockRecorder) GetReader() *gomock.Call {
+// GetResetter indicates an expected call of GetResetter.
+func (mr *MockServiceMockRecorder) GetResetter() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReader", reflect.TypeOf((*MockService)(nil).GetReader))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResetter", reflect.TypeOf((*MockService)(nil).GetResetter))
 }
 
 // IsProcessing mocks base method.
