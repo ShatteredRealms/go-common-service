@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ShatteredRealms/go-common-service/pkg/auth"
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/WilSimpson/gocloak/v13"
@@ -105,6 +106,17 @@ func (srvCtx *Context) CreateRoles(ctx context.Context, roles *[]*gocloak.Role) 
 	}
 
 	return errs
+}
+
+func (srvCtx *Context) ValidateRoles(ctx context.Context, role *gocloak.Role) error {
+	claims, ok := auth.RetrieveClaims(ctx)
+	if !ok {
+		return ErrPermissionDenied
+	}
+	if !claims.HasResourceRole(role, srvCtx.Config.Keycloak.ClientId) {
+		return ErrPermissionDenied
+	}
+	return nil
 }
 
 // // ValidateUserExists checks if a user exists in Keycloak. If the user does not exist it returns

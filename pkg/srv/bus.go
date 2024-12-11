@@ -38,6 +38,11 @@ var (
 
 // ResetReaderBus implements pb.BusServiceServer.
 func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) (*pb.ResetBusResponse, error) {
+	err := b.ctx.ValidateRoles(ctx, RoleBusReset)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.GetType() == "" {
 		// Reset all buses
 		var err error
@@ -63,7 +68,7 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 		return nil, status.Errorf(codes.NotFound, ErrBusNotFound.Error())
 	}
 
-	err := bus.Reset(ctx)
+	err = bus.Reset(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Errorf("%w: %w", ErrBusReset, err).Error())
 	}
@@ -75,6 +80,11 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 
 // ResetWriterBus implements pb.BusServiceServer.
 func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) (*pb.ResetBusResponse, error) {
+	err := b.ctx.ValidateRoles(ctx, RoleBusReset)
+	if err != nil {
+		return nil, err
+	}
+
 	if request.GetType() == "" {
 		var err error
 		builder := strings.Builder{}
@@ -98,7 +108,7 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 		return nil, status.Errorf(codes.NotFound, ErrBusNotFound.Error())
 	}
 
-	err := busCallback()
+	err = busCallback()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Errorf("%w: %w", ErrBusReset, err).Error())
 	}
