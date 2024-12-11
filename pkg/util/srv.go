@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 
 	sroauth "github.com/ShatteredRealms/go-common-service/pkg/auth"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
@@ -32,7 +33,7 @@ func GrpcClientWithOtel(address string) (*grpc.ClientConn, error) {
 func InitServerDefaults(kcClient gocloak.KeycloakClient, realm string) (*grpc.Server, *runtime.ServeMux) {
 	opts := []logging.Option{
 		logging.WithCodes(logging.DefaultErrorToCode),
-		logging.WithFieldsFromContextAndCallMeta(logSroData),
+		logging.WithFieldsFromContextAndCallMeta(logTraceData),
 	}
 
 	return grpc.NewServer(
@@ -40,10 +41,12 @@ func InitServerDefaults(kcClient gocloak.KeycloakClient, realm string) (*grpc.Se
 			grpc.ChainUnaryInterceptor(
 				logging.UnaryServerInterceptor(interceptorLogger(log.Logger), opts...),
 				selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(sroauth.AuthFunc(kcClient, realm)), selector.MatchFunc(sroauth.NotPublicServiceMatcher)),
+				logging.UnaryServerInterceptor(interceptorLogger(log.Logger), logging.WithFieldsFromContextAndCallMeta(logRequestorData)),
 			),
 			grpc.ChainStreamInterceptor(
 				logging.StreamServerInterceptor(interceptorLogger(log.Logger), opts...),
 				selector.StreamServerInterceptor(auth.StreamServerInterceptor(sroauth.AuthFunc(kcClient, realm)), selector.MatchFunc(sroauth.NotPublicServiceMatcher)),
+				logging.StreamServerInterceptor(interceptorLogger(log.Logger), logging.WithFieldsFromContextAndCallMeta(logRequestorData)),
 			)),
 		runtime.NewServeMux()
 }
@@ -76,15 +79,18 @@ func interceptorLogger(l logrus.FieldLogger) logging.Logger {
 	})
 }
 
-func logSroData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
+func logTraceData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
 	out := logging.Fields{}
 	if spanCtx := trace.SpanContextFromContext(ctx); spanCtx.IsValid() {
 		out = append(out, "traceId", spanCtx.TraceID().String())
 	}
+	return out
+}
 
+func logRequestorData(ctx context.Context, c interceptors.CallMeta) logging.Fields {
+	out := logging.Fields{}
 	if claims, ok := sroauth.RetrieveClaims(ctx); ok {
-		out = append(out, "requestor", claims.Username+":"+claims.Subject)
+		out = append(out, "requestor", fmt.Sprintf("%s:%s", claims.Username, claims.Subject))
 	}
-
 	return out
 }
