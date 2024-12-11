@@ -2,14 +2,14 @@ package mapbus
 
 import (
 	"context"
+
+	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
 type Repository interface {
-	GetMapById(ctx context.Context, dimensionId string) (*Map, error)
+	bus.BusMessageRepository[Message]
 
-	GetMaps(ctx context.Context) (*Maps, error)
+	GetById(ctx context.Context, dimensionId string) (*Map, error)
 
-	CreateMap(ctx context.Context, dimensionId string) (*Map, error)
-
-	DeleteMap(ctx context.Context, dimensionId string) (*Map, error)
+	GetAll(ctx context.Context) (*Maps, error)
 }

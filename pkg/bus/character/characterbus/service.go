@@ -6,8 +6,8 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
 )
 
-type Service interface {
-	bus.BusProcessor
+type Service[T bus.BusMessage[any]] interface {
+	bus.BusProcessor[T]
 	GetCharacters(ctx context.Context) (*Characters, error)
 	GetCharacterById(ctx context.Context, characterId string) (*Character, error)
 	DoesOwnCharacter(ctx context.Context, characterId, ownerId string) (bool, error)
@@ -20,7 +20,7 @@ type service struct {
 func NewService(
 	repo Repository,
 	characterBus bus.MessageBusReader[Message],
-) Service {
+) Service[Message] {
 	return &service{
 		DefaultBusProcessor: bus.DefaultBusProcessor[Message]{
 			Reader: characterBus,

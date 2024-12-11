@@ -9,10 +9,11 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 )
 
-type BusProcessor interface {
+type BusProcessor[T BusMessage[any]] interface {
 	StartProcessing(ctx context.Context)
 	StopProcessing()
 	IsProcessing() bool
+	GetReader() MessageBusReader[T]
 }
 
 var (
@@ -27,6 +28,10 @@ type DefaultBusProcessor[T BusModelMessage[any]] struct {
 	concurrentFetchErr int
 	concurrentErrCount int
 	isProcessing       bool
+}
+
+func (bp *DefaultBusProcessor[T]) GetReader() MessageBusReader[T] {
+	return bp.Reader
 }
 
 func (bp *DefaultBusProcessor[T]) IsProcessing() bool {

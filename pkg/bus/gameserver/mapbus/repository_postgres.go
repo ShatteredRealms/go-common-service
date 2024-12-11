@@ -6,7 +6,6 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type postgresRepository struct {
@@ -18,34 +17,37 @@ func NewPostgresRepository(db *gorm.DB) Repository {
 	return &postgresRepository{gormdb: db}
 }
 
-// CreateMap implements MapRepository.
-func (p *postgresRepository) CreateMap(ctx context.Context, mId string) (m *Map, _ error) {
-	updateSpanWithMap(ctx, mId)
-	m.Id = mId
-	return m, p.db(ctx).Create(m).Error
+// Save implements MapRepository.
+func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
+	m := Map{
+		Id: msg.Id,
+	}
+
+	updateSpanWithMap(ctx, m.Id)
+	return p.db(ctx).Save(&m).Error
 }
 
-// DeleteMap implements MapRepository.
-func (p *postgresRepository) DeleteMap(ctx context.Context, mId string) (m *Map, _ error) {
-	updateSpanWithMap(ctx, mId)
-	return m, p.db(ctx).Clauses(clause.Returning{}).Delete(m, "id = ?", mId).Error
+// Delete implements MapRepository.
+func (p *postgresRepository) Delete(ctx context.Context, mapId string) error {
+	updateSpanWithMap(ctx, mapId)
+	return p.db(ctx).Delete(&Map{}, "id = ?", mapId).Error
 }
 
-// GetMapById implements MapRepository.
-func (p *postgresRepository) GetMapById(ctx context.Context, mId string) (m *Map, _ error) {
-	result := p.db(ctx).Where("id = ?", mId).Find(&m)
+// GetById implements MapRepository.
+func (p *postgresRepository) GetById(ctx context.Context, mapId string) (m *Map, _ error) {
+	result := p.db(ctx).First(&m, "id = ?", mapId)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	if result.RowsAffected == 0 {
 		return nil, nil
 	}
-	updateSpanWithMap(ctx, mId)
+	updateSpanWithMap(ctx, mapId)
 	return m, nil
 }
 
-// GetMaps implements MapRepository.
-func (p *postgresRepository) GetMaps(ctx context.Context) (maps *Maps, _ error) {
+// GetAll implements MapRepository.
+func (p *postgresRepository) GetAll(ctx context.Context) (maps *Maps, _ error) {
 	return maps, p.db(ctx).Find(maps).Error
 }
 
@@ -53,9 +55,9 @@ func (p *postgresRepository) db(ctx context.Context) *gorm.DB {
 	return p.gormdb.WithContext(ctx)
 }
 
-func updateSpanWithMap(ctx context.Context, mId string) {
+func updateSpanWithMap(ctx context.Context, mapId string) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
-		srospan.MapId(mId),
+		srospan.MapId(mapId),
 	)
 }

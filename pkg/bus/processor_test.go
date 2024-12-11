@@ -18,7 +18,7 @@ var _ = Describe("Bus processor", func() {
 	var (
 		testRepo TestBusMessageRepository
 		testBus  TestingBus
-		bp       bus.BusProcessor
+		bp       bus.BusProcessor[TestBusMessage]
 	)
 	BeforeEach(func() {
 		testRepo = TestBusMessageRepository{}
