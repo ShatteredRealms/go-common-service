@@ -17,6 +17,9 @@ type Message struct {
 	UpdatedAt time.Time
 }
 
+type BusReader bus.MessageBusReader[Message]
+type BusWriter bus.MessageBusWriter[Message]
+
 func (m Message) GetType() bus.BusMessageType {
 	return bus.BusMessageType("sro.gameserver.map")
 }

@@ -19,6 +19,9 @@ type Message struct {
 	Deleted bool `json:"deleted"`
 }
 
+type BusReader bus.MessageBusReader[Message]
+type BusWriter bus.MessageBusWriter[Message]
+
 func (m Message) GetType() bus.BusMessageType {
 	return bus.BusMessageType("sro.character")
 }
