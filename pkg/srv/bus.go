@@ -20,7 +20,7 @@ type busService struct {
 	pb.UnimplementedBusServiceServer
 	ctx Context
 
-	readers         map[bus.BusMessageType]bus.MessageBusReader[bus.BusMessage[any]]
+	readerResetters map[bus.BusMessageType]bus.Resettable
 	writerCallbacks map[bus.BusMessageType]WriterResetCallback
 }
 
@@ -42,7 +42,7 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 		// Reset all buses
 		var err error
 		builder := strings.Builder{}
-		for name, reader := range b.readers {
+		for name, reader := range b.readerResetters {
 			err = errors.Join(err, reader.Reset(ctx))
 			builder.WriteString(string(name))
 			builder.WriteString(", ")
@@ -53,12 +53,12 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 
 		str := builder.String()
 		return &pb.ResetBusResponse{
-			Message: fmt.Sprintf("Reset %d buses: %s", len(b.readers), str[:len(str)-2]),
+			Message: fmt.Sprintf("Reset %d buses: %s", len(b.readerResetters), str[:len(str)-2]),
 		}, nil
 	}
 
 	// Reset a specific bus
-	bus, ok := b.readers[bus.BusMessageType(request.GetType())]
+	bus, ok := b.readerResetters[bus.BusMessageType(request.GetType())]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, ErrBusNotFound.Error())
 	}
@@ -69,7 +69,7 @@ func (b *busService) ResetReaderBus(ctx context.Context, request *pb.BusTarget) 
 	}
 
 	return &pb.ResetBusResponse{
-		Message: fmt.Sprintf("Reset 1 bus: %s", bus.GetMessageType()),
+		Message: fmt.Sprintf("Reset 1 bus: %s", request.GetType()),
 	}, nil
 }
 
@@ -111,7 +111,7 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 func NewBusServiceServer(
 	ctx context.Context,
 	srvCtx Context,
-	readers []bus.MessageBusReader[bus.BusMessage[any]],
+	readerResetters map[bus.BusMessageType]bus.Resettable,
 	writerCallbacks map[bus.BusMessageType]WriterResetCallback,
 ) (*busService, error) {
 	err := srvCtx.CreateRoles(ctx, &BusRoles)
@@ -122,11 +122,7 @@ func NewBusServiceServer(
 	service := &busService{
 		ctx:             srvCtx,
 		writerCallbacks: writerCallbacks,
-		readers:         make(map[bus.BusMessageType]bus.MessageBusReader[bus.BusMessage[any]], len(readers)),
-	}
-
-	for _, reader := range readers {
-		service.readers[reader.GetMessageType()] = reader
+		readerResetters: readerResetters,
 	}
 
 	return service, nil

@@ -40,6 +40,15 @@ func main() {
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 
+	var svc characterbus.Service
+	_ = svc
+	svc = characterbus.NewService(nil, readBusses[0])
+
+	var checker bus.MessageBusReader[bus.BusMessage[any]]
+	_ = checker
+	checker = bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg1, msg)
+	// checker = svc.GetReader()
+
 	for _, b := range readBusses {
 		go func() {
 			failCount := 0

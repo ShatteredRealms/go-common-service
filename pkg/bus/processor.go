@@ -13,7 +13,7 @@ type BusProcessor[T BusMessage[any]] interface {
 	StartProcessing(ctx context.Context)
 	StopProcessing()
 	IsProcessing() bool
-	GetReader() MessageBusReader[T]
+	GetResetter() Resettable
 }
 
 var (
@@ -30,7 +30,8 @@ type DefaultBusProcessor[T BusModelMessage[any]] struct {
 	isProcessing       bool
 }
 
-func (bp *DefaultBusProcessor[T]) GetReader() MessageBusReader[T] {
+// GetResetter implements BusProcessor.
+func (bp *DefaultBusProcessor[T]) GetResetter() Resettable {
 	return bp.Reader
 }
 

@@ -14,10 +14,14 @@ type BusModelMessage[T any] interface {
 	WasDeleted() bool
 }
 
+type Resettable interface {
+	Reset(context.Context) error
+}
+
 type MessageBusReader[T BusMessage[any]] interface {
+	Resettable
 	GetMessageType() BusMessageType
 	GetGroup() string
-	Reset(context.Context) error
 	FetchMessage(context.Context) (*T, error)
 	ProcessSucceeded(context.Context) error
 	ProcessFailed() error
