@@ -85,6 +85,10 @@ func (b *busService) ResetWriterBus(ctx context.Context, request *pb.BusTarget) 
 		return nil, err
 	}
 
+	if len(b.writerCallbacks) == 0 {
+		return nil, status.Errorf(codes.NotFound, "no writer buses registered")
+	}
+
 	if request.GetType() == "" {
 		var err error
 		builder := strings.Builder{}
