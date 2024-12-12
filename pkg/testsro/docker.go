@@ -347,7 +347,7 @@ func ConnectMongoDocker(host string) (mdb *mongo.Database, err error) {
 	return
 }
 
-func SetupGormWithDocker() (closeFn func() error, port string, err error) {
+func SetupPostgresWithDocker() (closeFn func() error, port string, err error) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return
@@ -462,7 +462,6 @@ func SetupRedisWithDocker() (closeFn func() error, cfg config.DBPoolConfig, err 
 		}
 	}
 
-	// container is ready, return *gorm.Db for testing
 	cfg = config.DBPoolConfig{
 		Master: config.DBConfig{
 			ServerAddress: config.ServerAddress{

@@ -39,7 +39,7 @@ func TestRepository(t *testing.T) {
 		log.Logger, hook = test.NewNullLogger()
 
 		var gormPort string
-		gdbCloseFunc, gormPort, err = testsro.SetupGormWithDocker()
+		gdbCloseFunc, gormPort, err = testsro.SetupPostgresWithDocker()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(gdbCloseFunc).NotTo(BeNil())
 
