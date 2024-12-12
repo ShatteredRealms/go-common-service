@@ -374,6 +374,22 @@ func SetupPostgresWithDocker() (closeFn func() error, port string, err error) {
 		return resource.Close()
 	}
 
+	// retry until db server is ready
+	err = pool.Retry(func() (err error) {
+		code, err := resource.Exec([]string{
+			"pg_isready",
+			"-U",
+			"postgres",
+		}, dockertest.ExecOptions{
+			// StdOut: os.Stdout,
+			// StdErr: os.Stderr,
+		})
+		if code != 0 {
+			return fmt.Errorf("postgres not ready: code %d", code)
+		}
+		return err
+	})
+
 	port = resource.GetPort("5432/tcp")
 	return
 }
