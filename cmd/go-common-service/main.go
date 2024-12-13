@@ -13,14 +13,14 @@ import (
 	"github.com/ShatteredRealms/go-common-service/pkg/bus/character/characterbus"
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
-	"github.com/go-faker/faker/v4"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
 	resetBus     = true
-	sendMessages = false
+	sendMessages = true
 )
 
 func main() {
@@ -94,11 +94,31 @@ func main() {
 		select {
 		case <-ticker.C:
 			ctx, span := tracer.Start(ctx, "publish-message")
+			id, err := uuid.NewV7()
+			if err != nil {
+				log.Logger.Errorf("Error generating UUID: %v", err)
+				break
+			}
+			oId, err := uuid.NewV7()
+			if err != nil {
+				log.Logger.Errorf("Error generating UUID: %v", err)
+				break
+			}
+			dId, err := uuid.NewV7()
+			if err != nil {
+				log.Logger.Errorf("Error generating UUID: %v", err)
+				break
+			}
+			mId, err := uuid.NewV7()
+			if err != nil {
+				log.Logger.Errorf("Error generating UUID: %v", err)
+				break
+			}
 			newMsg := characterbus.Message{
-				Id:          faker.UUIDHyphenated(),
-				OwnerId:     faker.UUIDHyphenated(),
-				DimensionId: faker.UUIDHyphenated(),
-				MapId:       faker.UUIDHyphenated(),
+				Id:          id,
+				OwnerId:     oId,
+				DimensionId: dId,
+				MapId:       mId,
 				Deleted:     false,
 			}
 

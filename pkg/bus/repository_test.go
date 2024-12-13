@@ -2,6 +2,8 @@ package bus_test
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type TestBusMessageRepository struct {
@@ -10,7 +12,7 @@ type TestBusMessageRepository struct {
 }
 
 // Delete implements bus.BusMessageRepository.
-func (t *TestBusMessageRepository) Delete(ctx context.Context, id string) error {
+func (t *TestBusMessageRepository) Delete(ctx context.Context, id *uuid.UUID) error {
 	return t.ErrOnDelete
 }
 
@@ -18,4 +20,3 @@ func (t *TestBusMessageRepository) Delete(ctx context.Context, id string) error 
 func (t *TestBusMessageRepository) Save(ctx context.Context, data TestBusMessage) error {
 	return t.ErrOnSave
 }
-

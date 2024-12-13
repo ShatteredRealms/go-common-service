@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
+	"github.com/google/uuid"
 )
 
 type BusProcessor[T BusMessage[any]] interface {
@@ -93,8 +94,14 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 		return fmt.Errorf("%w: %w", ErrFetchMessage, err)
 	}
 
+	id, err := uuid.Parse((*msg).GetId())
+	if err != nil {
+		log.Logger.WithContext(ctx).Errorf("invalid %T id %s: %v", msg, (*msg).GetId(), err)
+		bp.Reader.ProcessFailed()
+		return ErrFetchMessage
+	}
 	if (*msg).WasDeleted() {
-		err = bp.Repo.Delete(ctx, (*msg).GetId())
+		err = bp.Repo.Delete(ctx, &id)
 		if err != nil {
 			log.Logger.WithContext(ctx).Errorf(
 				"unable to delete %T %s: %v", msg, (*msg).GetId(), err)

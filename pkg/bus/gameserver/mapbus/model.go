@@ -1,10 +1,14 @@
 package mapbus
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Map struct {
-	Id        string `gorm:"primaryKey" json:"id"`
-	OwnerId   string `gorm:"index;not null" json:"ownerId"`
+	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
+	OwnerId   uuid.UUID `gorm:"index;not null" json:"ownerId"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

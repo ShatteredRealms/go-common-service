@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
+	"github.com/google/uuid"
 )
 
 type Message struct {
 	// Id is the unique identifier of the character
-	Id string `json:"id"`
+	Id uuid.UUID `json:"id"`
 
 	// Deleted is a flag indicating if the character has been deleted
 	Deleted bool `json:"deleted"`
@@ -25,7 +26,7 @@ func (m Message) GetType() bus.BusMessageType {
 }
 
 func (m Message) GetId() string {
-	return m.Id
+	return m.Id.String()
 }
 
 func (m Message) WasDeleted() bool {

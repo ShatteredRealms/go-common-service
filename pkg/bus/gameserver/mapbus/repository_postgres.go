@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
@@ -23,18 +24,18 @@ func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
 		Id: msg.Id,
 	}
 
-	updateSpanWithMap(ctx, m.Id)
+	updateSpanWithMap(ctx, m.Id.String())
 	return p.db(ctx).Save(&m).Error
 }
 
 // Delete implements MapRepository.
-func (p *postgresRepository) Delete(ctx context.Context, mapId string) error {
-	updateSpanWithMap(ctx, mapId)
+func (p *postgresRepository) Delete(ctx context.Context, mapId *uuid.UUID) error {
+	updateSpanWithMap(ctx, mapId.String())
 	return p.db(ctx).Delete(&Map{}, "id = ?", mapId).Error
 }
 
 // GetById implements MapRepository.
-func (p *postgresRepository) GetById(ctx context.Context, mapId string) (m *Map, _ error) {
+func (p *postgresRepository) GetById(ctx context.Context, mapId *uuid.UUID) (m *Map, _ error) {
 	result := p.db(ctx).First(&m, "id = ?", mapId)
 	if result.Error != nil {
 		return nil, result.Error
@@ -42,7 +43,7 @@ func (p *postgresRepository) GetById(ctx context.Context, mapId string) (m *Map,
 	if result.RowsAffected == 0 {
 		return nil, nil
 	}
-	updateSpanWithMap(ctx, mapId)
+	updateSpanWithMap(ctx, mapId.String())
 	return m, nil
 }
 

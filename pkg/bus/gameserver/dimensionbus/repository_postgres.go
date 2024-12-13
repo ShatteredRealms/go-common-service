@@ -3,8 +3,7 @@ package dimensionbus
 import (
 	"context"
 
-	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -23,18 +22,16 @@ func (p *postgresRepository) Save(ctx context.Context, msg Message) error {
 		Id: msg.Id,
 	}
 
-	updateSpanWithDimension(ctx, dimension.Id)
 	return p.db(ctx).Save(&dimension).Error
 }
 
 // Delete implements DimensionRepository.
-func (p *postgresRepository) Delete(ctx context.Context, dimensionId string) error {
-	updateSpanWithDimension(ctx, dimensionId)
+func (p *postgresRepository) Delete(ctx context.Context, dimensionId *uuid.UUID) error {
 	return p.db(ctx).Delete(&Dimension{}, "id = ?", dimensionId).Error
 }
 
 // GetById implements DimensionRepository.
-func (p *postgresRepository) GetById(ctx context.Context, dimensionId string) (dimension *Dimension, _ error) {
+func (p *postgresRepository) GetById(ctx context.Context, dimensionId *uuid.UUID) (dimension *Dimension, _ error) {
 	result := p.db(ctx).First(&dimension, "id = ?", dimensionId)
 	if result.Error != nil {
 		return nil, result.Error
@@ -42,7 +39,6 @@ func (p *postgresRepository) GetById(ctx context.Context, dimensionId string) (d
 	if result.RowsAffected == 0 {
 		return nil, nil
 	}
-	updateSpanWithDimension(ctx, dimensionId)
 	return dimension, nil
 }
 
@@ -53,11 +49,4 @@ func (p *postgresRepository) GetAll(ctx context.Context) (dimensions *Dimensions
 
 func (p *postgresRepository) db(ctx context.Context) *gorm.DB {
 	return p.gormdb.WithContext(ctx)
-}
-
-func updateSpanWithDimension(ctx context.Context, dimensionId string) {
-	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(
-		srospan.DimensionId(dimensionId),
-	)
 }

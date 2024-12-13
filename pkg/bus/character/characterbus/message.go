@@ -1,19 +1,22 @@
 package characterbus
 
-import "github.com/ShatteredRealms/go-common-service/pkg/bus"
+import (
+	"github.com/ShatteredRealms/go-common-service/pkg/bus"
+	"github.com/google/uuid"
+)
 
 type Message struct {
 	// Id is the unique identifier of the character
-	Id string `json:"id"`
+	Id uuid.UUID `json:"id"`
 
 	// OwnerId is the unique identifier of the owner of the character
-	OwnerId string `json:"ownerId"`
+	OwnerId uuid.UUID `json:"ownerId"`
 
 	// DimensionId is the unique identifier of the dimension the character is in
-	DimensionId string `json:"dimensionId"`
+	DimensionId uuid.UUID `json:"dimensionId"`
 
 	// MapId is the unique identifier of the map the character is in
-	MapId string `json:"mapId"`
+	MapId uuid.UUID `json:"mapId"`
 
 	// Deleted is a flag indicating if the character has been deleted
 	Deleted bool `json:"deleted"`
@@ -27,7 +30,7 @@ func (m Message) GetType() bus.BusMessageType {
 }
 
 func (m Message) GetId() string {
-	return m.Id
+	return m.Id.String()
 }
 
 func (m Message) WasDeleted() bool {

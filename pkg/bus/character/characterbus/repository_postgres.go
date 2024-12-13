@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/srospan"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -35,14 +36,14 @@ func (p *postgresRepository) Save(
 		MapId:       msg.MapId,
 	}
 
-	updateSpanWithCharacter(ctx, character.Id, character.OwnerId)
+	updateSpanWithCharacter(ctx, character.Id.String(), character.OwnerId.String())
 	return p.db(ctx).Save(&character).Error
 }
 
 // DeleteCharacter implements CharacterRepository.
 func (p *postgresRepository) Delete(
 	ctx context.Context,
-	id string,
+	id *uuid.UUID,
 ) error {
 	character := &Character{}
 	err := p.db(ctx).Clauses(clause.Returning{}).Delete(character, "id = ?", id).Error
@@ -50,14 +51,14 @@ func (p *postgresRepository) Delete(
 		return err
 	}
 
-	updateSpanWithCharacter(ctx, id, character.OwnerId)
+	updateSpanWithCharacter(ctx, id.String(), character.OwnerId.String())
 	return err
 }
 
 // GetById implements CharacterRepository.
 func (p *postgresRepository) GetById(
 	ctx context.Context,
-	characterId string,
+	characterId *uuid.UUID,
 ) (character *Character, _ error) {
 	character = &Character{}
 	result := p.db(ctx).First(&character, "id = ?", characterId)
@@ -68,7 +69,7 @@ func (p *postgresRepository) GetById(
 		return nil, nil
 	}
 
-	updateSpanWithCharacter(ctx, characterId, character.OwnerId)
+	updateSpanWithCharacter(ctx, characterId.String(), character.OwnerId.String())
 	return character, nil
 }
 
@@ -82,13 +83,13 @@ func (p *postgresRepository) GetAll(
 // GetCharacterByOwnerId implements CharacterRepository.
 func (p *postgresRepository) GetByOwnerId(
 	ctx context.Context,
-	ownerId string,
+	ownerId *uuid.UUID,
 ) (characters *Characters, _ error) {
 	return characters, p.db(ctx).Where("owner_id = ?", ownerId).Find(&characters).Error
 }
 
 // IsOwner implements CharacterRepository.
-func (p *postgresRepository) IsOwner(ctx context.Context, characterId string, ownerId string) (bool, error) {
+func (p *postgresRepository) IsOwner(ctx context.Context, characterId *uuid.UUID, ownerId *uuid.UUID) (bool, error) {
 	result := p.db(ctx).Where("id = ? AND owner_id = ?", characterId, ownerId).First(&Character{})
 	if result.Error != nil {
 		return false, result.Error

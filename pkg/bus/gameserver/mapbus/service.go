@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
+	"github.com/ShatteredRealms/go-common-service/pkg/common"
+	"github.com/google/uuid"
 )
 
 type Service interface {
@@ -30,7 +32,12 @@ func NewService(
 
 // GetMapById implements MapService.
 func (d *service) GetMapById(ctx context.Context, mapId string) (*Map, error) {
-	return d.Repo.(Repository).GetById(ctx, mapId)
+	id, err := uuid.Parse(mapId)
+	if err != nil {
+		return nil, common.ErrInvalidId
+	}
+
+	return d.Repo.(Repository).GetById(ctx, &id)
 }
 
 // GetMaps implements MapService.

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
+	"github.com/ShatteredRealms/go-common-service/pkg/common"
+	"github.com/google/uuid"
 )
 
 type Service interface {
@@ -30,7 +32,12 @@ func NewService(
 
 // GetDimensionById implements DimensionService.
 func (d *service) GetDimensionById(ctx context.Context, dimensionId string) (*Dimension, error) {
-	return d.Repo.(Repository).GetById(ctx, dimensionId)
+	id, err := uuid.Parse(dimensionId)
+	if err != nil {
+		return nil, common.ErrInvalidId
+	}
+
+	return d.Repo.(Repository).GetById(ctx, &id)
 }
 
 // GetDimensions implements DimensionService.

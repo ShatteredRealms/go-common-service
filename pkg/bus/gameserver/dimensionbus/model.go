@@ -2,10 +2,12 @@ package dimensionbus
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Dimension struct {
-	Id        string `gorm:"primaryKey" json:"id"`
+	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
