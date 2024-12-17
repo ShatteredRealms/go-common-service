@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/bus"
-	"github.com/ShatteredRealms/go-common-service/pkg/bus/character/characterbus"
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
+	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -23,7 +23,7 @@ var (
 
 type IgnoreRepo struct{}
 
-func (i *IgnoreRepo) Save(ctx context.Context, data characterbus.Message) error {
+func (i *IgnoreRepo) Save(ctx context.Context, data TestMessage) error {
 	return nil
 }
 func (i *IgnoreRepo) Delete(ctx context.Context, id *uuid.UUID) error {
@@ -39,18 +39,18 @@ func main() {
 	tp := trace.NewTracerProvider()
 	defer tp.Shutdown(ctx)
 
-	msg := characterbus.Message{}
-	readBusses := make([]bus.MessageBusReader[characterbus.Message], 0)
+	msg := TestMessage{}
+	readBusses := make([]bus.MessageBusReader[TestMessage], 0)
 	cg1, cg2 := "service1", "service2"
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg1, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg1, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 
-	processors := make([]bus.BusProcessor[characterbus.Message], 0)
+	processors := make([]bus.BusProcessor[TestMessage], 0)
 
 	for _, b := range readBusses {
-		busProcesor := bus.DefaultBusProcessor[characterbus.Message]{
+		busProcesor := bus.DefaultBusProcessor[TestMessage]{
 			Reader: b,
 			Repo:   &IgnoreRepo{},
 		}
@@ -83,27 +83,9 @@ func main() {
 				log.Logger.Errorf("Error generating UUID: %v", err)
 				break
 			}
-			oId, err := uuid.NewV7()
-			if err != nil {
-				log.Logger.Errorf("Error generating UUID: %v", err)
-				break
-			}
-			dId, err := uuid.NewV7()
-			if err != nil {
-				log.Logger.Errorf("Error generating UUID: %v", err)
-				break
-			}
-			mId, err := uuid.NewV7()
-			if err != nil {
-				log.Logger.Errorf("Error generating UUID: %v", err)
-				break
-			}
-			newMsg := characterbus.Message{
-				Id:          id,
-				OwnerId:     oId,
-				DimensionId: dId,
-				MapId:       mId,
-				Deleted:     false,
+			newMsg := TestMessage{
+				Id:   id,
+				Data: faker.Username(),
 			}
 
 			log.Logger.Infof("Publishing message (%s)", newMsg.GetId())
@@ -138,4 +120,19 @@ func main() {
 			return
 		}
 	}
+}
+
+type TestMessage struct {
+	Id   uuid.UUID
+	Data string
+}
+
+func (t TestMessage) GetId() string {
+	return t.Id.String()
+}
+func (t TestMessage) GetType() bus.BusMessageType {
+	return "common.testmessage"
+}
+func (t TestMessage) WasDeleted() bool {
+	return false
 }

@@ -79,7 +79,7 @@ func (k *kafkaBusReader[T]) FetchMessage(ctx context.Context) (*T, error) {
 		return k.FetchMessage(ctx)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrDecodingMessage, err)
+		return nil, fmt.Errorf("%w: %w", ErrFetchMessage, err)
 	}
 
 	ctx, innerSpan = k.tracer.Start(ctx, "fetch.decode")
