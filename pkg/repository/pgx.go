@@ -45,9 +45,7 @@ func NewPgxMigrater(ctx context.Context, service string, pgpoolUrl string, migra
 		return nil, fmt.Errorf("pg pool not available: %w", err)
 	}
 
-	driver, err := migratepgx.WithInstance(stdlib.OpenDBFromPool(migrater.Conn), &migratepgx.Config{
-		MigrationsTable: "migrations_" + service,
-	})
+	driver, err := migratepgx.WithInstance(stdlib.OpenDBFromPool(migrater.Conn), &migratepgx.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate driver: %w", err)
 	}
