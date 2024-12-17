@@ -20,7 +20,7 @@ type PgxMigrater struct {
 	Conn    *pgxpool.Pool
 }
 
-func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
+func NewPgxMigrater(ctx context.Context, service string, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
 	migrater := &PgxMigrater{}
 	pgConfig, err := pgxpool.ParseConfig(pgpoolUrl)
 	if err != nil {
@@ -45,7 +45,9 @@ func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string)
 		return nil, fmt.Errorf("pg pool not available: %w", err)
 	}
 
-	driver, err := migratepgx.WithInstance(stdlib.OpenDBFromPool(migrater.Conn), &migratepgx.Config{})
+	driver, err := migratepgx.WithInstance(stdlib.OpenDBFromPool(migrater.Conn), &migratepgx.Config{
+		MigrationsTable: "migrations_" + service,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate driver: %w", err)
 	}
