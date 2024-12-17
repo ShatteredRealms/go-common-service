@@ -20,7 +20,7 @@ type PgxMigrater struct {
 	Conn    *pgxpool.Pool
 }
 
-func NewPgxMigrater(ctx context.Context, service string, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
+func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
 	migrater := &PgxMigrater{}
 	pgConfig, err := pgxpool.ParseConfig(pgpoolUrl)
 	if err != nil {
