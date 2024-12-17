@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
-	"io"
 	"os"
 	"os/signal"
 	"sync"
@@ -23,6 +21,15 @@ var (
 	sendMessages = true
 )
 
+type IgnoreRepo struct{}
+
+func (i *IgnoreRepo) Save(ctx context.Context, data characterbus.Message) error {
+	return nil
+}
+func (i *IgnoreRepo) Delete(ctx context.Context, id *uuid.UUID) error {
+	return nil
+}
+
 func main() {
 
 	log.Logger.Level = logrus.InfoLevel
@@ -40,38 +47,15 @@ func main() {
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 	readBusses = append(readBusses, bus.NewKafkaMessageBusReader([]config.ServerAddress{{Host: "localhost", Port: "29092"}}, cg2, msg))
 
+	processors := make([]bus.BusProcessor[characterbus.Message], 0)
+
 	for _, b := range readBusses {
-		go func() {
-			failCount := 0
-			maxFailCount := 0
-			for ctx.Err() == nil {
-				inCtx := context.Background()
-				msg, err := b.FetchMessage(inCtx)
-				if err != nil {
-					if !errors.Is(err, io.EOF) {
-						log.Logger.Errorf("Error for group %s fetching message: %v", b.GetGroup(), err)
-					}
-					continue
-				}
-
-				if failCount < maxFailCount {
-					failCount++
-					log.Logger.Infof("Failing for group %s to process and message: %v", b.GetGroup(), msg)
-					err := b.ProcessFailed()
-					if err != nil {
-						log.Logger.Errorf("Failed for group %s to mark %v as failed: %v", b.GetGroup(), msg, err)
-					}
-					continue
-				}
-
-				failCount = 0
-				log.Logger.Infof("Succeeding for group %s to process message: %v", b.GetGroup(), msg)
-				err = b.ProcessSucceeded(inCtx)
-				if err != nil {
-					log.Logger.Errorf("Failed for group %s to mark %v as succeeded: %v", b.GetGroup(), msg, err)
-				}
-			}
-		}()
+		busProcesor := bus.DefaultBusProcessor[characterbus.Message]{
+			Reader: b,
+			Repo:   &IgnoreRepo{},
+		}
+		busProcesor.StartProcessing(ctx)
+		processors = append(processors, &busProcesor)
 	}
 
 	if resetBus {
@@ -130,6 +114,13 @@ func main() {
 			log.Logger.Info("Shut down requested by user")
 
 			wg := sync.WaitGroup{}
+			for _, p := range processors {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					p.StopProcessing()
+				}()
+			}
 			for _, b := range readBusses {
 				wg.Add(1)
 				go func() {

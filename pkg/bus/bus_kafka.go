@@ -2,19 +2,12 @@ package bus
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/ShatteredRealms/go-common-service/pkg/config"
 	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/segmentio/kafka-go"
 	"go.opentelemetry.io/otel/trace"
-)
-
-var (
-	ErrSerializeMessage = errors.New("unable to serialize message")
-	ErrSendingMessage   = errors.New("unable to send message on bus")
-	ErrEncodingMessage  = errors.New("unable to encode message")
 )
 
 type kafkaBus[T BusMessage[any]] struct {

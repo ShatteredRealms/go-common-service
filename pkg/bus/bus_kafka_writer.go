@@ -147,7 +147,7 @@ func (k *kafkaBusWriter[T]) encodeMessage(msg T) ([]byte, error) {
 	var buf bytes.Buffer
 	err := gob.NewEncoder(&buf).Encode(msg)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSerializeMessage, err)
+		return nil, fmt.Errorf("%w: %w", ErrEncodingMessage, err)
 	}
 	return buf.Bytes(), nil
 }

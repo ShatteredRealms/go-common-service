@@ -89,7 +89,12 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 	msg, err := bp.Reader.FetchMessage(ctx)
 	if err != nil {
-		log.Logger.WithContext(ctx).Errorf("unable to fetch %T message: %v", msg, err)
+		log.Logger.WithContext(ctx).Debugf("unable to fetch %T message: %v", msg, err)
+		if errors.Is(err, ErrDecodingMessage) {
+			log.Logger.Warnf("skipping %T message due to invalid format", msg)
+			bp.Reader.ProcessSkipped(ctx)
+			return err
+		}
 		bp.Reader.ProcessFailed()
 		return fmt.Errorf("%w: %w", ErrFetchMessage, err)
 	}

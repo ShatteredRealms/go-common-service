@@ -35,6 +35,7 @@ type TestingBus struct {
 	ErrOnFetch            error
 	ErrOnProcessFailed    error
 	ErrOnProcessSucceeded error
+	ErrOnProcessSkipped   error
 	ErrOnPublish          error
 	Queue                 chan *TestBusMessage
 	CurrentMessage        *TestBusMessage
@@ -79,6 +80,12 @@ func (t *TestingBus) ProcessFailed() error {
 func (t *TestingBus) ProcessSucceeded(context.Context) error {
 	t.CurrentMessage = nil
 	return t.ErrOnProcessSucceeded
+}
+
+// ProcessSucceeded implements bus.MessageBusReader.
+func (t *TestingBus) ProcessSkipped(context.Context) error {
+	t.CurrentMessage = nil
+	return t.ErrOnProcessSkipped
 }
 
 func (t *TestingBus) Reset(context.Context) error {

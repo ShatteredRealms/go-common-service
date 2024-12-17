@@ -29,6 +29,7 @@ type MessageBusReader[T BusMessage[any]] interface {
 	FetchMessage(context.Context) (*T, error)
 	ProcessSucceeded(context.Context) error
 	ProcessFailed() error
+	ProcessSkipped(context.Context) error
 	Close() error
 }
 

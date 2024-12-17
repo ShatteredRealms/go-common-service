@@ -79,7 +79,7 @@ func (k *kafkaBusReader[T]) FetchMessage(ctx context.Context) (*T, error) {
 		return k.FetchMessage(ctx)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSerializeMessage, err)
+		return nil, fmt.Errorf("%w: %w", ErrDecodingMessage, err)
 	}
 
 	ctx, innerSpan = k.tracer.Start(ctx, "fetch.decode")
@@ -87,7 +87,7 @@ func (k *kafkaBusReader[T]) FetchMessage(ctx context.Context) (*T, error) {
 	var data T
 	dec := gob.NewDecoder(bytes.NewReader(k.currentMessage.Value))
 	if err := dec.Decode(&data); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSerializeMessage, err)
+		return nil, fmt.Errorf("%w: %w", ErrDecodingMessage, err)
 	}
 
 	return &data, nil
@@ -216,6 +216,18 @@ func (k *kafkaBusReader[T]) GetMessageType() BusMessageType {
 }
 
 func (k *kafkaBusReader[T]) ProcessSucceeded(ctx context.Context) error {
+	if k.currentMessage == nil {
+		return errors.New("message not fetched")
+	}
+	if k.Reader != nil {
+		err := k.Reader.CommitMessages(ctx, *k.currentMessage)
+		k.currentMessage = nil
+		return err
+	}
+	return errors.New("reader not initialized")
+}
+
+func (k *kafkaBusReader[T]) ProcessSkipped(ctx context.Context) error {
 	if k.currentMessage == nil {
 		return errors.New("message not fetched")
 	}
