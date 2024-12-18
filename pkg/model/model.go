@@ -4,16 +4,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/plugin/soft_delete"
 )
 
 type Model struct {
-	Id        *uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt soft_delete.DeletedAt `gorm:"uniqueIndex:idx_deleted"`
-}
-
-func (m *Model) IsCreated() bool {
-	return m.Id != nil
+	Id        uuid.UUID  `db:"id" json:"id"`
+	CreatedAt time.Time  `db:"created_at" json:"createdAt" mapstructure:"created_at"`
+	UpdatedAt time.Time  `db:"updated_at" json:"updatedAt" mapstructure:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at" json:"deletedAt" mapstructure:"deleted_at"`
 }

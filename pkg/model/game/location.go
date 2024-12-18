@@ -6,13 +6,13 @@ import (
 )
 
 type Location struct {
-	WorldId uuid.UUID `json:"world"`
-	X       float32   `json:"x"`
-	Y       float32   `json:"y"`
-	Z       float32   `json:"z"`
-	Roll    float32   `json:"roll"`
-	Pitch   float32   `json:"pitch"`
-	Yaw     float32   `json:"yaw"`
+	WorldId uuid.UUID `db:"world_id" json:"worldId" mapstructure:"world_id"`
+	X       float32   `db:"x" json:"x" mapstructure:"x"`
+	Y       float32   `db:"y" json:"y" mapstructure:"y"`
+	Z       float32   `db:"z" json:"z" mapstructure:"z"`
+	Roll    float32   `db:"roll" json:"roll" mapstructure:"roll"`
+	Pitch   float32   `db:"pitch" json:"pitch" mapstructure:"pitch"`
+	Yaw     float32   `db:"yaw" json:"yaw" mapstructure:"yaw"`
 }
 
 func (l Location) ToPb() *pb.Location {
