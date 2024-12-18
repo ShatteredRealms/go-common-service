@@ -22,7 +22,7 @@ var (
 
 type Context struct {
 	Config         *config.BaseConfig
-	KeycloakClient *gocloak.GoCloak
+	KeycloakClient gocloak.GoCloakIface
 	Tracer         trace.Tracer
 
 	jwt            *gocloak.JWT
@@ -30,13 +30,14 @@ type Context struct {
 }
 
 func NewContext(config *config.BaseConfig, service string) *Context {
+	keycloakClient := gocloak.NewClient(config.Keycloak.BaseURL)
 	srvCtx := &Context{
 		Config:         config,
-		KeycloakClient: gocloak.NewClient(config.Keycloak.BaseURL),
+		KeycloakClient: keycloakClient,
 		Tracer:         otel.Tracer(service),
 	}
 
-	srvCtx.KeycloakClient.RegisterMiddlewares(gocloak.OpenTelemetryMiddleware)
+	keycloakClient.RegisterMiddlewares(gocloak.OpenTelemetryMiddleware)
 	log.Logger.Level = config.LogLevel
 
 	return srvCtx

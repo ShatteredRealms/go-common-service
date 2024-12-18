@@ -30,7 +30,7 @@ func GrpcClientWithOtel(address string) (*grpc.ClientConn, error) {
 	return grpc.NewClient(address, GrpcDialOpts()...)
 }
 
-func InitServerDefaults(kcClient gocloak.KeycloakClient, realm string) (*grpc.Server, *runtime.ServeMux) {
+func InitServerDefaults(kcClient gocloak.GoCloakIface, realm string) (*grpc.Server, *runtime.ServeMux) {
 	opts := []logging.Option{
 		logging.WithCodes(logging.DefaultErrorToCode),
 		logging.WithFieldsFromContextAndCallMeta(logSroData),
