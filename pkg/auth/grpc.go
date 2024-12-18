@@ -31,7 +31,7 @@ func RegisterPublicServiceMethods(methods ...string) {
 	}
 }
 
-func AuthFunc(kcClient gocloak.KeycloakClient, realm string) auth.AuthFunc {
+func AuthFunc(kcClient gocloak.GoCloakIface, realm string) auth.AuthFunc {
 	return func(ctx context.Context) (context.Context, error) {
 		_, claims, err := verifyClaims(ctx, kcClient, realm)
 

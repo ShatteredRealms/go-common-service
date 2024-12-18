@@ -18,7 +18,7 @@ var (
 	ErrDoesNotExist   = fmt.Errorf("%w: CA02", ErrFailed)
 )
 
-func verifyClaims(ctx context.Context, client gocloak.KeycloakClient, realm string) (*jwt.Token, *SROClaims, error) {
+func verifyClaims(ctx context.Context, client gocloak.GoCloakIface, realm string) (*jwt.Token, *SROClaims, error) {
 	if client == nil {
 		return nil, nil, ErrMissingGocloak
 	}
