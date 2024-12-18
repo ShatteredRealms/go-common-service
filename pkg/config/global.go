@@ -27,6 +27,7 @@ type BaseConfig struct {
 	Mode                ServerMode      `yaml:"mode"`
 	LogLevel            logrus.Level    `yaml:"logLevel"`
 	OpenTelemtryAddress string          `yaml:"openTelemetryAddress"`
+	MigrationPath       string          `yaml:"migrationPath"`
 }
 
 func (s *ServerAddress) Address() string {
