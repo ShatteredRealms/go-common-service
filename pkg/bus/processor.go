@@ -60,6 +60,9 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 		log.Logger.WithContext(ctx).Infof("Starting bus processor for %s", bp.Reader.GetMessageType())
 		for bp.isProcessing {
 			err := bp.process(ctx)
+			if err != nil {
+				log.Logger.WithContext(ctx).Errorf("failed to process %s message: %v", bp.Reader.GetMessageType(), err)
+			}
 			if errors.Is(err, ErrProcessingFailed) {
 				bp.concurrentErrCount++
 			} else if errors.Is(err, ErrFetchMessage) {
@@ -93,7 +96,7 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 		if errors.Is(err, ErrDecodingMessage) {
 			log.Logger.Warnf("skipping %T message due to invalid format", msg)
 			bp.Reader.ProcessSkipped(ctx)
-			return err
+			return nil
 		}
 		bp.Reader.ProcessFailed()
 		return fmt.Errorf("%w: %w", ErrFetchMessage, err)
