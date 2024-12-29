@@ -1,0 +1,6 @@
+[submodule "protos"]
+	path = protos
+	url = git@github.com:ShatteredRealms/protos.git
+[submodule "api"]
+	path = api
+	url = git@github.com:ShatteredRealms/protos.git
