@@ -98,6 +98,7 @@ run-watch:
 
 clean-protos:
 	rm -rf "$(ROOT_DIR)/pkg/pb"
+	git submodule update --remote --merge
 
 protos: clean-protos $(PROTO_FILES) move-protos mocks
 
