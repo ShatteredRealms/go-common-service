@@ -25,26 +25,6 @@ services:
     networks:
       - backend
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    restart: always
-    ports:
-      - "16686:16686"
-      - "14268"
-      - "14250"
-    networks:
-      - backend
-
-  zipkin:
-    image: openzipkin/zipkin:latest
-    environment:
-      - JAVA_OPTS=-Xms1024m -Xmx1024m -XX:+ExitOnOutOfMemoryError
-    restart: always
-    ports:
-      - "9411:9411"
-    networks:
-      - backend
-
   redis-cluster:
     image: grokzen/redis-cluster:7.0.10
     environment:
@@ -59,59 +39,6 @@ services:
     networks:
       - backend
   
-  prometheus:
-    image: prom/prometheus:latest
-    restart: always
-    volumes:
-      - ./test/prometheus.yaml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - backend
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.97.0
-    restart: on-failure
-    user: '0:0' # required for logs
-    volumes:
-      - ./test/otel-collector.yaml:/etc/otelcol-contrib/config.yaml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/log:/var/log:ro
-    ports:
-      - "1888:1888"   # pprof extension
-      - "8888:8888"   # Prometheus metrics exposed by the collector
-      - "8889:8889"   # Prometheus exporter metrics
-      - "13133:13133" # health_check extension
-      - "4317:4317"   # OTLP gRPC receiver
-      - "55679:55679" # zpages extension
-    depends_on:
-      - zipkin
-      - prometheus
-    networks:
-      - backend
-
-  alertmanager:
-    image: prom/alertmanager:v0.24.0
-    restart: on-failure
-    volumes:
-      - ./test/alertmanager.yaml:/etc/alertmanager/config.yml
-      - alertmanager_data:/alertmanager
-    ports:
-      - 9093:9093
-    command:
-      - '--config.file=/etc/alertmanager/config.yml'
-      - '--storage.path=/alertmanager'
-    networks:
-      - backend
-
-  mailhog:
-    image: mailhog/mailhog:v1.0.1
-    restart: on-failure
-    ports:
-      - '8025:8025'
-    networks:
-      - backend
-
   postgres:
     image: postgres
     restart: always
@@ -166,9 +93,99 @@ services:
     volumes:
       - keycloak:/opt/keycloak/data/h2:rw
 
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+    volumes:
+      - ./test/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.97.0
+    restart: on-failure
+    user: '0:0' # required for logs
+    volumes:
+      - ./test/otel-collector.yaml:/etc/otelcol-contrib/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "55679:55679" # zpages extension
+    depends_on:
+      - prometheus
+    networks:
+      - backend
+
+  loki:
+    image: grafana/loki:2.9.2
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - backend
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - backend
+
+  init:
+    image: &tempoImage grafana/tempo:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo-data:/var/tempo
+
+  tempo:
+    hostname: tempo
+    image: *tempoImage
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./test/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/var/tempo
+    ports:
+      - "3200" # tempo
+      - "4317" # otlp grpc
+    depends_on:
+      - init
+    networks:
+      - backend
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DIABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
+    volumes:
+      - ./test/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
 volumes:
-  alertmanager_data:
-    driver: local
   postgres:
     driver: local
   keycloak:

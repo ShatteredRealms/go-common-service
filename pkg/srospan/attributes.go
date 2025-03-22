@@ -43,3 +43,7 @@ func DimensionId(val string) attribute.KeyValue {
 func MapId(val string) attribute.KeyValue {
 	return attribute.String("sro.map.id", val)
 }
+
+func ChatChannelId(val string) attribute.KeyValue {
+	return attribute.String("sro.chat.channel.id", val)
+}
