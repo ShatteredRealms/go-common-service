@@ -158,7 +158,7 @@ func (bp *DefaultBusProcessor[T]) StopProcessing() {
 	bp.isProcessing = false
 }
 
-func (bp *DefaultBusProcessor[T]) AddListener(listener BusListener[T]) BusListenerHandler {
+func (bp *DefaultBusProcessor[T]) RegisterListener(listener BusListener[T]) BusListenerHandler {
 	listenerHandle := bp.nextListenerHandle
 	bp.nextListenerHandle++
 	bp.Listeners[listenerHandle] = listener
