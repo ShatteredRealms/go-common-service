@@ -10,11 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type BusListener[T BusMessage[any]] func(ctx context.Context, msg *T)
+type BusListenerHandler int
+
 type BusProcessor[T BusMessage[any]] interface {
 	StartProcessing(ctx context.Context)
 	StopProcessing()
 	IsProcessing() bool
 	GetResetter() Resettable
+	RegisterListener(listener BusListener[T]) BusListenerHandler
+	RemoveListener(listenerHandle BusListenerHandler)
 }
 
 var (
@@ -25,6 +30,8 @@ var (
 type DefaultBusProcessor[T BusModelMessage[any]] struct {
 	Reader             MessageBusReader[T]
 	Repo               BusMessageRepository[T]
+	Listeners          map[BusListenerHandler]BusListener[T]
+	nextListenerHandle BusListenerHandler
 	mu                 sync.Mutex
 	concurrentFetchErr int
 	concurrentErrCount int
@@ -59,7 +66,7 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 
 		log.Logger.WithContext(ctx).Infof("Starting bus processor for %s", bp.Reader.GetMessageType())
 		for bp.isProcessing {
-			err := bp.process(ctx)
+			msg, err := bp.process(ctx)
 			if errors.Is(err, ErrProcessingFailed) {
 				bp.concurrentErrCount++
 			} else if errors.Is(err, ErrFetchMessage) {
@@ -71,6 +78,12 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 			} else {
 				bp.concurrentErrCount = 0
 				bp.concurrentFetchErr = 0
+
+				if msg != nil {
+					for _, listener := range bp.Listeners {
+						listener(ctx, msg)
+					}
+				}
 			}
 
 			if bp.concurrentErrCount >= 5 {
@@ -86,25 +99,25 @@ func (bp *DefaultBusProcessor[T]) StartProcessing(ctx context.Context) {
 	}()
 }
 
-func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
+func (bp *DefaultBusProcessor[T]) process(ctx context.Context) (*T, error) {
 	msg, err := bp.Reader.FetchMessage(ctx)
 	if err != nil {
 		if errors.Is(err, ErrDecodingMessage) {
 			log.Logger.Warnf("skipping %T message due to invalid format", msg)
 			bp.Reader.ProcessSkipped(ctx)
-			return nil
+			return nil, nil
 		}
 
 		log.Logger.WithContext(ctx).Errorf("unable to fetch %T message: %v", msg, err)
 		bp.Reader.ProcessFailed()
-		return fmt.Errorf("%w: %w", ErrFetchMessage, err)
+		return nil, fmt.Errorf("%w: %w", ErrFetchMessage, err)
 	}
 
 	id, err := uuid.Parse((*msg).GetId())
 	if err != nil {
 		log.Logger.WithContext(ctx).Errorf("invalid %T id %s: %v", msg, (*msg).GetId(), err)
 		bp.Reader.ProcessFailed()
-		return ErrFetchMessage
+		return nil, ErrFetchMessage
 	}
 	if (*msg).WasDeleted() {
 		err = bp.Repo.Delete(ctx, &id)
@@ -112,12 +125,12 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 			log.Logger.WithContext(ctx).Errorf(
 				"unable to delete %T %s: %v", msg, (*msg).GetId(), err)
 			bp.Reader.ProcessFailed()
-			return ErrProcessingFailed
+			return nil, ErrProcessingFailed
 		}
 
 		log.Logger.WithContext(ctx).Infof("deleted %T %s", msg, (*msg).GetId())
 		bp.Reader.ProcessSucceeded(ctx)
-		return nil
+		return nil, nil
 	}
 
 	err = bp.Repo.Save(ctx, *msg)
@@ -125,12 +138,12 @@ func (bp *DefaultBusProcessor[T]) process(ctx context.Context) error {
 		log.Logger.WithContext(ctx).Errorf(
 			"unable to save %T %s: %v", msg, (*msg).GetId(), err)
 		bp.Reader.ProcessFailed()
-		return ErrProcessingFailed
+		return nil, ErrProcessingFailed
 	}
 
 	log.Logger.WithContext(ctx).Infof("saved %T %s", msg, (*msg).GetId())
 	bp.Reader.ProcessSucceeded(ctx)
-	return nil
+	return msg, nil
 }
 
 func (bp *DefaultBusProcessor[T]) StopProcessing() {
@@ -143,4 +156,15 @@ func (bp *DefaultBusProcessor[T]) StopProcessing() {
 
 	log.Logger.Infof("Stopping bus processor for %s", bp.Reader.GetMessageType())
 	bp.isProcessing = false
+}
+
+func (bp *DefaultBusProcessor[T]) AddListener(listener BusListener[T]) BusListenerHandler {
+	listenerHandle := bp.nextListenerHandle
+	bp.nextListenerHandle++
+	bp.Listeners[listenerHandle] = listener
+	return listenerHandle
+}
+
+func (bp *DefaultBusProcessor[T]) RemoveListener(listenerHandle BusListenerHandler) {
+	delete(bp.Listeners, listenerHandle)
 }
