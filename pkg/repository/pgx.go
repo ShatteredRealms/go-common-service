@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ShatteredRealms/go-common-service/pkg/log"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/exaring/otelpgx"
 	"github.com/golang-migrate/migrate/v4"
@@ -21,7 +22,11 @@ type PgxMigrater struct {
 }
 
 func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
-	migrater := &PgxMigrater{}
+	migrater := &PgxMigrater{
+		migrate: &migrate.Migrate{
+			Log: &MigrateLogger{},
+		},
+	}
 	pgConfig, err := pgxpool.ParseConfig(pgpoolUrl)
 	if err != nil {
 		return nil, fmt.Errorf("parsing pool: %w", err)
@@ -60,4 +65,14 @@ func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string)
 	}
 
 	return migrater, nil
+}
+
+type MigrateLogger struct{}
+
+func (m *MigrateLogger) Printf(format string, v ...interface{}) {
+	log.Logger.Infof(format, v...)
+}
+
+func (m *MigrateLogger) Verbose() bool {
+	return false
 }
