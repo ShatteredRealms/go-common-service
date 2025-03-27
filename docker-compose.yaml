@@ -185,6 +185,19 @@ services:
     networks:
       - backend
 
+  envoy:
+    image: envoyproxy/envoy:v1.32-latest
+    volumes:
+      - ./test/envoy.yaml:/etc/envoy/envoy.yaml
+      - ./test/localhost.pem:/etc/envoy/localhost.pem
+    ports:
+      - "9091:9091"
+    working_dir: /etc/envoy
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
+    networks:
+      - backend
+
+
 volumes:
   postgres:
     driver: local
