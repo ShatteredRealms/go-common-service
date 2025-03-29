@@ -39,3 +39,9 @@ datasources:
   isDefault: false
   version: 1
   editable: false
+- uid: local-pyroscope
+  type: grafana-pyroscope-datasource
+  name: Pyroscope
+  url: http://pyroscope:4040
+  jsonData:
+    keepCookies: [pyroscope_git_session]

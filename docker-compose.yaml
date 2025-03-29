@@ -1,6 +1,8 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    labels:
+      - "logging.promtail=true"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -11,6 +13,8 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    labels:
+      - "logging.promtail=true"
     depends_on:
       - zookeeper
     ports:
@@ -27,6 +31,8 @@ services:
 
   redis-cluster:
     image: grokzen/redis-cluster:7.0.10
+    labels:
+      - "logging.promtail=true"
     environment:
       IP: 0.0.0.0
       INITIAL_PORT: 7000
@@ -41,6 +47,8 @@ services:
   
   postgres:
     image: postgres
+    labels:
+      - "logging.promtail=true"
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -60,6 +68,8 @@ services:
   mongo:
     restart: always
     image: mongo:7.0-rc
+    labels:
+      - "logging.promtail=true"
     volumes:
       - mongo:/data/db
     networks:
@@ -74,6 +84,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak
+    labels:
+      - "logging.promtail=true"
     user: root
     environment:
       DB_VENDOR: postgres
@@ -101,6 +113,8 @@ services:
       - --web.enable-remote-write-receiver
       - --enable-feature=exemplar-storage
       - --enable-feature=native-histograms
+      - --enable-feature=remote-write-receiver
+      - --web.enable-otlp-receiver
     volumes:
       - ./test/prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
@@ -132,14 +146,20 @@ services:
     image: grafana/loki:2.9.2
     ports:
       - "3100:3100"
+    volumes:
+      - loki:/loki
+      - ./test/loki.yaml:/etc/loki/local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - backend
 
   promtail:
     image: grafana/promtail:2.9.2
+    ports:
+      - "9080:9080"
     volumes:
       - /var/log:/var/log
+      - ./test/promtail.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     networks:
       - backend
@@ -176,7 +196,7 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DIABLE_LOGIN_FORM=true
       - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
-      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app;grafana-pyroscope-app
     volumes:
       - ./test/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     image: grafana/grafana:latest
@@ -187,6 +207,8 @@ services:
 
   envoy:
     image: envoyproxy/envoy:v1.32-latest
+    labels:
+      - "logging.promtail=true"
     volumes:
       - ./test/envoy.yaml:/etc/envoy/envoy.yaml
       - ./test/localhost.pem:/etc/envoy/localhost.pem
@@ -197,6 +219,13 @@ services:
     networks:
       - backend
 
+  pyroscope:
+    image: grafana/pyroscope:latest
+    ports:
+    - 4040:4040
+    networks:
+      - backend
+
 
 volumes:
   postgres:
@@ -204,6 +233,8 @@ volumes:
   keycloak:
     driver: local
   mongo:
+    driver: local
+  loki:
     driver: local
 
 networks:
