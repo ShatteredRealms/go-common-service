@@ -21,7 +21,7 @@ type PgxMigrater struct {
 	Conn    *pgxpool.Pool
 }
 
-func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string) (*PgxMigrater, error) {
+func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string, autoMigrate bool) (*PgxMigrater, error) {
 	migrater := &PgxMigrater{
 		migrate: &migrate.Migrate{
 			Log: &MigrateLogger{},
@@ -54,14 +54,17 @@ func NewPgxMigrater(ctx context.Context, pgpoolUrl string, migrationPath string)
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate driver: %w", err)
 	}
-	migrater.migrate, err = migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", migrationPath), "postgres", driver)
-	if err != nil {
-		return nil, fmt.Errorf("creating migrate instance: %w", err)
-	}
 
-	err = migrater.migrate.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		return nil, fmt.Errorf("migrating: %w", err)
+	migrater.migrate, err = migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", migrationPath), "postgres", driver)
+	if autoMigrate {
+		if err != nil {
+			return nil, fmt.Errorf("creating migrate instance: %w", err)
+		}
+
+		err = migrater.migrate.Up()
+		if err != nil && err != migrate.ErrNoChange {
+			return nil, fmt.Errorf("migrating: %w", err)
+		}
 	}
 
 	return migrater, nil
