@@ -61,7 +61,6 @@ services:
       - '5432:5432'
     volumes: 
       - postgres:/var/lib/postgresql/data
-      # - ./test/db-init.sql:/docker-entrypoint-initdb.d/create_tables.sql
     networks:
       - backend
 
@@ -164,28 +163,16 @@ services:
     networks:
       - backend
 
-  init:
-    image: &tempoImage grafana/tempo:latest
-    user: root
-    entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
-    volumes:
-      - ./tempo-data:/var/tempo
-
   tempo:
     hostname: tempo
-    image: *tempoImage
+    image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./test/tempo.yaml:/etc/tempo.yaml
-      - ./tempo-data:/var/tempo
+      - tempo:/var/tempo
     ports:
       - "3200" # tempo
       - "4317" # otlp grpc
-    depends_on:
-      - init
     networks:
       - backend
 
@@ -211,11 +198,13 @@ services:
       - "logging.promtail=true"
     volumes:
       - ./test/envoy.yaml:/etc/envoy/envoy.yaml
-      - ./test/localhost.pem:/etc/envoy/localhost.pem
+      - ./test/localhost.crt:/etc/envoy/localhost.crt
+      - ./test/localhost.key:/etc/envoy/localhost.key
     ports:
       - "9091:9091"
+      - "9911:9911"
     working_dir: /etc/envoy
-    command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
+    command: ["envoy", "-l", "debug", "-c", "/etc/envoy/envoy.yaml"]
     networks:
       - backend
 
@@ -235,6 +224,8 @@ volumes:
   mongo:
     driver: local
   loki:
+    driver: local
+  tempo:
     driver: local
 
 networks:

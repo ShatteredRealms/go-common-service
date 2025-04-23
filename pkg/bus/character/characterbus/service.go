@@ -10,8 +10,9 @@ import (
 
 type Service interface {
 	bus.BusProcessor[Message]
-	GetCharacters(ctx context.Context) (*Characters, error)
+	GetCharacters(ctx context.Context) (Characters, error)
 	GetCharacterById(ctx context.Context, characterId string) (*Character, error)
+	GetCharactersByOwnerId(ctx context.Context, ownerId string) (Characters, error)
 	DoesOwnCharacter(ctx context.Context, characterId, ownerId string) (bool, error)
 }
 
@@ -41,8 +42,18 @@ func (d *service) GetCharacterById(ctx context.Context, characterId string) (*Ch
 	return d.Repo.(Repository).GetById(ctx, &id)
 }
 
+// GetCharacterById implements CharacterService.
+func (d *service) GetCharactersByOwnerId(ctx context.Context, ownerId string) (Characters, error) {
+	id, err := uuid.Parse(ownerId)
+	if err != nil {
+		return nil, common.ErrInvalidId
+	}
+
+	return d.Repo.(Repository).GetByOwnerId(ctx, &id)
+}
+
 // GetCharacters implements CharacterService.
-func (d *service) GetCharacters(ctx context.Context) (*Characters, error) {
+func (d *service) GetCharacters(ctx context.Context) (Characters, error) {
 	return d.Repo.(Repository).GetAll(ctx)
 }
 

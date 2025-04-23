@@ -76,7 +76,7 @@ func (p *postgresRepository) GetById(
 // GetAll implements CharacterRepository.
 func (p *postgresRepository) GetAll(
 	ctx context.Context,
-) (characters *Characters, _ error) {
+) (characters Characters, _ error) {
 	return characters, p.db(ctx).Find(&characters).Error
 }
 
@@ -84,7 +84,7 @@ func (p *postgresRepository) GetAll(
 func (p *postgresRepository) GetByOwnerId(
 	ctx context.Context,
 	ownerId *uuid.UUID,
-) (characters *Characters, _ error) {
+) (characters Characters, _ error) {
 	return characters, p.db(ctx).Where("owner_id = ?", ownerId).Find(&characters).Error
 }
 
