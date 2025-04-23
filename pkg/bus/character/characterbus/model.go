@@ -16,3 +16,11 @@ type Character struct {
 }
 
 type Characters []*Character
+
+func (chars Characters) ToIds() []string {
+	ids := make([]string, len(chars))
+	for i, char := range chars {
+		ids[i] = char.Id.String()
+	}
+	return ids
+}
