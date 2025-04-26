@@ -7,7 +7,7 @@ import (
 )
 
 type Dimension struct {
-	Id        uuid.UUID `gorm:"primaryKey" json:"id"`
+	Id        uuid.UUID `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

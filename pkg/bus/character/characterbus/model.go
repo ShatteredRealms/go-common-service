@@ -7,10 +7,10 @@ import (
 )
 
 type Character struct {
-	Id          uuid.UUID `gorm:"primaryKey" json:"id"`
-	OwnerId     uuid.UUID `gorm:"index;not null" json:"ownerId"`
-	DimensionId uuid.UUID `gorm:"index;not null" json:"dimensionId"`
-	MapId       uuid.UUID `gorm:"index;not null" json:"mapId"`
+	Id          uuid.UUID `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	OwnerId     uuid.UUID `gorm:"index;not null;type:uuid" json:"ownerId"`
+	DimensionId uuid.UUID `gorm:"index;not null;type:uuid" json:"dimensionId"`
+	MapId       uuid.UUID `gorm:"index;not null;type:uuid" json:"mapId"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
